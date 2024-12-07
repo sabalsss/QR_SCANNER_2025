@@ -1,0 +1,133 @@
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
+
+
+<!--    activity_custom_scanner.xml-->
+    <!-- Barcode Scanner View -->
+    <com.journeyapps.barcodescanner.DecoratedBarcodeView
+        android:id="@+id/zxing_barcode_scanner"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        app:zxing_scanner_layout="@layout/custom_barcode_scanner" />
+
+    <ImageView
+        android:id="@+id/barcodeBorderImage"
+        android:layout_width="300dp"
+        android:layout_height="300dp"
+        android:layout_centerHorizontal="true"
+        android:layout_marginTop="160dp"
+        android:contentDescription="@string/app_name"
+         android:elevation="5dp"
+         android:scaleType="fitXY"
+        android:src="@drawable/ic_border" />
+
+
+    <ImageView
+        android:id="@+id/scanner_laser"
+        android:layout_width="298dp"
+        android:layout_height="1dp"
+        android:layout_centerHorizontal="true"
+        android:layout_marginStart="16dp"
+        android:layout_marginEnd="16dp"
+        android:contentDescription="@string/app_name"
+        android:elevation="10dp"
+        android:background="@color/scanner_line"
+
+        android:visibility="visible" />
+
+    <TextView
+        android:id="@+id/zoom_progress_text"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_centerHorizontal="true"
+        android:layout_centerVertical="true"
+        android:layout_marginTop="10dp"
+        android:text="@string/zoom_progress"
+        android:textSize="20sp"
+        android:visibility="gone"
+        android:layout_below="@id/barcodeBorderImage"
+        android:textColor="@color/tool_bar" />
+    <!-- Flashlight Icon at the Bottom -->
+    <ImageView
+        android:id="@+id/flashlight_icon"
+        android:layout_width="35dp"
+        android:layout_height="35dp"
+        android:layout_marginBottom="80dp"
+        android:contentDescription="@string/Flashlight"
+        android:src="@drawable/flash_light"
+        android:layout_alignParentBottom="true"
+        android:layout_centerHorizontal="true" />
+
+    <!-- Gallery Icon at the Bottom -->
+    <ImageView
+        android:id="@+id/open_gallery"
+        android:layout_width="35dp"
+        android:layout_height="35dp"
+        android:contentDescription="@string/Flashlight"
+        android:src="@drawable/open_gallery"
+        android:layout_toEndOf="@id/flashlight_icon"
+        android:layout_alignParentBottom="true"
+        android:layout_marginStart="30dp"
+        android:layout_marginBottom="80dp"
+        android:layout_centerHorizontal="true" />
+
+    <ImageView
+        android:id="@+id/flip_camera"
+        android:layout_width="35dp"
+        android:layout_height="35dp"
+        android:contentDescription="@string/Flashlight"
+        android:src="@drawable/flip_camera"
+        android:layout_toStartOf="@id/flashlight_icon"
+        android:layout_alignParentBottom="true"
+        android:layout_marginEnd="20dp"
+        android:layout_marginBottom="80dp"
+        android:layout_centerHorizontal="true" />
+
+
+    <!-- RelativeLayout for SeekBar and Icon -->
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_alignParentBottom="true"
+        android:layout_marginBottom="120dp">
+
+        <!-- Icon on the Left -->
+        <ImageView
+            android:id="@+id/seekbar_icon"
+            android:layout_width="20dp"
+            android:layout_height="20dp"
+            android:layout_alignParentStart="true"
+            android:layout_centerVertical="true"
+            android:layout_marginStart="10dp"
+            android:contentDescription="@string/app_name"
+            android:src="@drawable/zoom_minus_svgrepo_com__2_" />
+        <!-- TextView for Progress -->
+
+        <ImageView
+            android:id="@+id/seekbar_icon_2"
+            android:layout_width="20dp"
+            android:layout_height="20dp"
+            android:layout_alignParentEnd="true"
+            android:layout_centerVertical="true"
+            android:layout_marginEnd="10dp"
+            android:contentDescription="@string/app_name"
+            android:src="@drawable/zoom_in_svgrepo_com" />
+        <!-- SeekBar -->
+        <SeekBar
+            android:id="@+id/zoom_seekbar"
+            android:layout_width="330dp"
+            android:layout_height="wrap_content"
+            android:layout_toEndOf="@id/seekbar_icon"
+            android:layout_centerVertical="true"
+            android:max="100"
+            android:layout_marginBottom="40dp"
+            android:progress="0"
+            android:thumbTint="@color/tool_bar"
+            android:progressTint="@color/tool_bar"
+            android:layout_marginStart="8dp"
+            android:layout_marginEnd="16dp" />
+    </RelativeLayout>
+
+</RelativeLayout>

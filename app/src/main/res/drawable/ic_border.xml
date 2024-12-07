@@ -1,0 +1,37 @@
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="200dp"
+    android:height="200dp"
+    android:viewportWidth="100"
+    android:viewportHeight="100">
+
+  <!-- Outer Rectangle (invisible background to maintain structure) -->
+  <path
+      android:pathData="M0,0h100v100h-100z"
+      android:fillColor="@color/transparent_color" /> <!-- Fully transparent -->
+
+  <!-- Top-Left Corner -->
+  <path
+      android:pathData="M0,0h10v2h-8v8h-2z"
+      android:fillColor="@color/icon_color" />
+
+  <!-- Top-Right Corner -->
+  <path
+      android:pathData="M90,0h10v10h-2v-8h-8z"
+      android:fillColor="@color/icon_color" />
+
+  <!-- Bottom-Left Corner -->
+  <path
+      android:pathData="M0,90h2v8h8v2h-10z"
+      android:fillColor="@color/icon_color" />
+
+  <!-- Bottom-Right Corner -->
+  <path
+      android:pathData="M90,90h10v10h-10v-2h8v-8h-2z"
+      android:fillColor="@color/icon_color" />
+
+  <!-- Thin White Line Connecting the Side Frames -->
+  <path
+      android:pathData="M10,0h80M10,100h80M0,10v80M100,10v80"
+      android:strokeColor="@color/line_color"
+  android:strokeWidth="1" />
+</vector>
