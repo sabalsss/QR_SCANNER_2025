@@ -2,15 +2,19 @@
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:background="@color/white">
 <!--    activity_result_screen.xml-->
     <!-- ActionBar with Back Button -->
     <androidx.appcompat.widget.Toolbar
         android:id="@+id/toolbar"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
+        android:layout_height="?attr/actionBarSize"
         android:background="@drawable/button_background"
+        app:titleTextColor="@android:color/white"
+        app:popupTheme="@style/ThemeOverlay.AppCompat.Light"
         android:elevation="4dp">
+
         <ImageButton
             android:id="@+id/back_button"
             android:layout_width="50dp"
@@ -27,9 +31,9 @@
             android:layout_alignParentStart="true"
             android:contentDescription="@string/app_name"
             android:padding="10dp"
+            android:text="@string/app_name"
             android:ellipsize="end"
-            android:maxLines="4"
-            android:textColor="@color/black"
+            android:maxLines="1"
             android:textSize="20sp" />
     </androidx.appcompat.widget.Toolbar>
 
@@ -38,19 +42,29 @@
         android:id="@+id/qr_result_text"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="@string/result"
         android:textSize="16sp"
         android:layout_below="@id/toolbar"
         android:padding="20dp"
         android:scrollbars="vertical"
-        android:textColor="@color/white"
-        android:layout_marginBottom="16dp"
-        android:background="@color/black"
+        android:background="@color/text_background"
         android:ellipsize="none"
         android:scrollHorizontally="false"
-        android:maxLines="1000"
-        android:lineSpacingExtra="4dp" />
+        android:maxLines="15"
+        android:lineSpacingExtra="4dp"
+        android:breakStrategy="simple" />
 
+    <TextView
+        android:id="@+id/timestamp_text"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/qr_result_text"
+        android:padding="4dp"
+        android:textColor="@color/black"
+        android:text="Scanned Time:2024/1/2"
+        android:textSize="14sp"
+        android:textStyle="italic"
+        android:gravity="center"
+        android:background="@color/line_color" />
 
     <!-- Horizontal LinearLayout for Buttons -->
     <LinearLayout
@@ -60,7 +74,7 @@
         android:orientation="horizontal"
         android:gravity="center"
         android:layout_below="@id/qr_result_text"
-        android:layout_marginTop="16dp"
+        android:layout_marginTop="30dp"
         android:weightSum="3">
 
         <!-- Copy Button -->
@@ -70,6 +84,7 @@
             android:layout_height="wrap_content"
             android:layout_weight="1"
             android:text="@string/Copy"
+            android:contentDescription="@string/Copy"
             android:background="@drawable/button_background" />
 
         <!-- Share Button -->
@@ -80,6 +95,7 @@
             android:layout_weight="1"
             android:layout_margin="3dp"
             android:text="@string/share"
+            android:contentDescription="@string/share"
             android:background="@drawable/button_background" />
 
         <!-- Connect Button (only visible if it's a Wi-Fi QR) -->
@@ -90,6 +106,7 @@
             android:layout_weight="1"
             android:text="@string/Connect"
             android:visibility="gone"
+            android:contentDescription="@string/Connect"
             android:background="@drawable/button_background" />
     </LinearLayout>
 
@@ -100,10 +117,11 @@
         android:layout_height="wrap_content"
         android:layout_below="@id/button_container"
         android:layout_centerHorizontal="true"
-        android:layout_marginTop="10dp"
+        android:layout_marginTop="3dp"
         android:text="@string/open_url"
         android:ellipsize="end"
         android:singleLine="true"
+        android:contentDescription="@string/open_url"
         android:background="@drawable/button_background" />
 
     <!-- ImageView to show scanned image -->

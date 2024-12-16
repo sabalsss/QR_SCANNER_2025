@@ -12,7 +12,7 @@
         android:id="@+id/zxing_viewfinder_view"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        app:zxing_viewfinder_mask="@color/zxing_transparent"
-        app:zxing_possible_result_points="@color/transparent_color"
+        app:zxing_viewfinder_mask="@color/transparent_color"
+        app:zxing_possible_result_points="@color/scanner_line_start"
         app:zxing_viewfinder_laser_visibility="false" />
 </merge>

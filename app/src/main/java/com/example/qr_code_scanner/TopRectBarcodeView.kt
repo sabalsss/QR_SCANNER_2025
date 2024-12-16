@@ -29,7 +29,7 @@ class TopRectBarcodeView @JvmOverloads constructor(
 
     override fun getFramingRectSize(): Size {
         // Convert DP to pixels and set width and height
-        val width = dpToPx(300) // Desired width in DP
+        val width = dpToPx(250) // Desired width in DP
         val height = dpToPx(300) // Desired height in DP
         return Size(width, height)
     }

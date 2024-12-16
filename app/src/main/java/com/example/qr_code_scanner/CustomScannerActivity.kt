@@ -4,12 +4,14 @@ import android.animation.ObjectAnimator
 import android.animation.ValueAnimator
 import android.content.ContentResolver
 import android.content.Intent
+import android.content.pm.ActivityInfo
 import android.content.pm.PackageManager
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.net.Uri
 import android.os.Bundle
 import android.provider.MediaStore
+import android.view.MenuItem
 import android.view.MotionEvent
 import android.view.ScaleGestureDetector
 import android.view.View
@@ -19,7 +21,9 @@ import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
+import androidx.core.view.GravityCompat
 import com.example.qr_code_scanner.databinding.ActivityCustomScannerBinding
+
 import com.google.zxing.BinaryBitmap
 import com.google.zxing.LuminanceSource
 import com.google.zxing.common.HybridBinarizer
@@ -46,14 +50,17 @@ class CustomScannerActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         binding = ActivityCustomScannerBinding.inflate(layoutInflater)
         setContentView(binding.root)
+        setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_UNSPECIFIED);
         startLaserAnimation()
+        setupDrawerLayout()
+        setupToolbar()
         flashlightState = false
         binding.flashlightIcon.setImageResource(R.drawable.flash_light_off)
         val framingRect = binding.zxingBarcodeScanner.barcodeView.framingRect
         scaleGestureDetector = ScaleGestureDetector(this, ScaleListener())
         if (framingRect != null) {
             binding.barcodeBorderImage.layoutParams.apply {
-                width = framingRect.width()
+                width = framingRect.width()-1
                 height = framingRect.height()
             }
             binding.barcodeBorderImage.requestLayout()
@@ -85,8 +92,6 @@ class CustomScannerActivity : AppCompatActivity() {
 
 
 
-
-
         // Check and request camera permission
         checkCameraPermission {
             initializeQrScanner(savedInstanceState)
@@ -113,36 +118,76 @@ class CustomScannerActivity : AppCompatActivity() {
         }
     }
 
+    private fun setupToolbar() {
+        // Set up the Toolbar as the ActionBar
+        setSupportActionBar(binding.toolbar)
+
+        // Enable the default hamburger icon to toggle the drawer
+        supportActionBar?.setDisplayHomeAsUpEnabled(true)
+
+
+        binding.toolbar.setNavigationOnClickListener {
+            binding.drawerLayout.openDrawer(GravityCompat.START)
+        }
+    }
+
+    private fun setupDrawerLayout() {
+        binding.navView.setNavigationItemSelectedListener { menuItem ->
+            when (menuItem.itemId) {
+                R.id.nav_scanner -> {
+                    startActivity(Intent(this, CustomScannerActivity::class.java))
+                }
+                R.id.nav_history -> {
+                    startActivity(Intent(this, HistoryActivity::class.java))
+                }
+            }
+            binding.drawerLayout.closeDrawer(GravityCompat.START)
+            true
+        }
+    }
+
+
     private fun startLaserAnimation() {
         val laserView = binding.scannerLaser
-        val scannerFrame=binding.barcodeBorderImage
+        val scannerFrame = binding.barcodeBorderImage
 
-        // Post to ensure views are laid out before accessing their dimensions
         scannerFrame.post {
-            // Get the scanner frame's top and bottom positions
             val frameTop = scannerFrame.top
             val frameBottom = scannerFrame.bottom
 
-            // Set the initial position of the laser
             laserView.translationY = frameTop.toFloat()
 
-            // Create an ObjectAnimator for the vertical movement of the laser
-            val laserAnimation = ObjectAnimator.ofFloat(
+            // Create vertical translation animation
+            val laserTranslationAnimation = ObjectAnimator.ofFloat(
                 laserView,
                 "translationY",
                 frameTop.toFloat(),
                 frameBottom.toFloat()
             ).apply {
-                duration = 2500L // 2 seconds for one cycle
-                repeatMode = ValueAnimator.REVERSE // Move back and forth
-                repeatCount = ValueAnimator.INFINITE // Loop indefinitely
-                interpolator = LinearInterpolator() // Smooth motion
+                duration = 3000L
+                repeatMode = ValueAnimator.REVERSE
+                repeatCount = ValueAnimator.INFINITE
+                interpolator = LinearInterpolator()
             }
 
-            // Start the animation
-            laserAnimation.start()
+            // Create alpha animation for fading effect
+            val laserAlphaAnimation = ObjectAnimator.ofFloat(
+                laserView,
+                "alpha",
+                0.5f, // Fading effect (semi-transparent)
+                1f
+            ).apply {
+                duration = 1250L // Sync with translation animation
+                repeatMode = ValueAnimator.REVERSE
+                repeatCount = ValueAnimator.INFINITE
+            }
+
+            // Play both animations together
+            laserTranslationAnimation.start()
+            laserAlphaAnimation.start()
         }
     }
+
 
     private fun flipCameraWithAnimation() {
         binding.zxingBarcodeScanner.animate()
@@ -156,6 +201,19 @@ class CustomScannerActivity : AppCompatActivity() {
                     .start()
             }
             .start()
+    }
+
+    override fun onOptionsItemSelected(item: MenuItem): Boolean {
+        val drawerLayout = binding.drawerLayout
+        if (item.itemId == android.R.id.home) {
+            if (!drawerLayout.isDrawerOpen(GravityCompat.START)) {
+                drawerLayout.openDrawer(GravityCompat.START)
+            } else {
+                drawerLayout.closeDrawer(GravityCompat.START)
+            }
+            return true
+        }
+        return super.onOptionsItemSelected(item)
     }
 
     private fun flipCameraInBackground() {
@@ -178,7 +236,28 @@ class CustomScannerActivity : AppCompatActivity() {
                     binding.zxingBarcodeScanner.resume()
                     captureManager.onResume()
 
+                    // Toggle camera state
                     isFrontCamera = !isFrontCamera
+
+                    // Show/hide flashlight icon based on the camera being used
+                    if (isFrontCamera) {
+                        // Animate hiding the flashlight icon
+                        binding.flashlightIcon.animate()
+                            .alpha(0f)
+                            .setDuration(300)
+                            .withEndAction {
+                                binding.flashlightIcon.visibility = View.GONE
+                            }
+                            .start()
+                    } else {
+                        // Animate showing the flashlight icon
+                        binding.flashlightIcon.visibility = View.VISIBLE
+                        binding.flashlightIcon.animate()
+                            .alpha(1f)
+                            .setDuration(300)
+                            .start()
+                    }
+
                     Toast.makeText(this@CustomScannerActivity, "Camera switched", Toast.LENGTH_SHORT).show()
                 }
             } catch (e: Exception) {
@@ -189,8 +268,11 @@ class CustomScannerActivity : AppCompatActivity() {
         }
     }
 
+
     private fun initializeQrScanner(savedInstanceState: Bundle?) {
         captureManager = CaptureManager(this, binding.zxingBarcodeScanner)
+        captureManager.setShowMissingCameraPermissionDialog(false)
+
         captureManager.initializeFromIntent(intent, savedInstanceState)
         val cameraSettings = binding.zxingBarcodeScanner.barcodeView.cameraSettings
         cameraSettings.isExposureEnabled = true
@@ -383,6 +465,10 @@ class CustomScannerActivity : AppCompatActivity() {
         captureManager.onPause()
     }
 
+    override fun onStart() {
+        super.onStart()
+        binding.navView.setCheckedItem(R.id.nav_scanner)
+    }
     override fun onDestroy() {
         super.onDestroy()
         captureManager.onDestroy()

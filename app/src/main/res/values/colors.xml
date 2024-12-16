@@ -2,9 +2,12 @@
 <resources>
     <color name="black">#FF000000</color>
     <color name="white">#FFFFFFFF</color>
+    <color name="text_background">#837070</color>
     <color name="tool_bar">#3a9c8c</color>
     <color name="transparent_color">#00000000</color>
-    <color name="line_color">#99FFFFFF</color>
-    <color name="scanner_line">#00B8D4</color>
-    <color name="icon_color">#FFFFFF</color>
+    <color name="line_color">#FFAB00</color>
+    <color name="scanner_line">#AC2706</color>
+    <color name="scanner_line_start">#FF3000</color> <!-- Bright red -->
+    <color name="scanner_line_middle">#9BD50000</color> <!-- Lighter red -->
+
 </resources>

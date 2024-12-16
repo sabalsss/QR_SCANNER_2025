@@ -7,10 +7,17 @@ import android.net.wifi.WifiManager
 import android.net.wifi.WifiNetworkSuggestion
 import android.os.Build
 import android.os.Bundle
+import android.text.util.Linkify
+import android.view.View
 import android.widget.Button
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import com.example.qr_code_scanner.databinding.ActivityResultScreenBinding
+import com.google.zxing.Result
+import com.google.zxing.client.result.*
+import java.text.SimpleDateFormat
+import java.util.Date
+import java.util.Locale
 
 class ResultScreen : AppCompatActivity() {
 
@@ -20,109 +27,221 @@ class ResultScreen : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         binding = ActivityResultScreenBinding.inflate(layoutInflater)
         setContentView(binding.root)
-
-        // Set the Toolbar as the Support ActionBar
         setSupportActionBar(binding.toolbar)
-
-        val scanResult = intent.getStringExtra("SCAN_RESULT") ?: "No result found"
+        binding.toolbar.title = Constants.RESULT_SCREEN
+        val currentTime = SimpleDateFormat("yyyy/MM/dd HH:mm:ss", Locale.getDefault()).format(Date())
+        binding.timestampText.text = getString(R.string.scanned_time, currentTime)
+        val scanResultString = intent.getStringExtra("SCAN_RESULT") ?: Constants.NO_RESULT_FOUND
         val imageUriString = intent.getStringExtra("IMAGE_URI")
-
-        val decodedData = QRDecoder.decodeQRData(scanResult)
-        // Display the decoded data content in the TextView
-        binding.qrResultText.text = decodedData.content
-        makeLinksClickable(binding.qrResultText) // Make links, emails, and phone numbers clickable
+        val scanResult = Result(scanResultString, null, null, null)
+        handleBarcodeResult(scanResult)
 
         imageUriString?.let {
             val imageUri = Uri.parse(it)
             binding.qrResultImage.setImageURI(imageUri)
         }
 
-        handleButtonsVisibility(scanResult)
-
         binding.backButton.setOnClickListener { goBackToMain() }
-        binding.btnCopy.setOnClickListener { copyToClipboard(decodedData.content) } // Pass decoded content
-        binding.btnShare.setOnClickListener { shareResult(decodedData.content) } // Share decoded content
     }
 
+    private fun handleBarcodeResult(result: Result) {
+        val parsedResult: ParsedResult = ResultParser.parseResult(result)
 
-    private fun handleButtonsVisibility(result: String) {
-        when {
-            result.startsWith("http://") || result.startsWith("https://") -> {
-                binding.btnOpenUrl.visibility = Button.VISIBLE
-                binding.btnOpenUrl.text = "Open in Browser"
-                binding.btnOpenUrl.setOnClickListener { openInBrowser(result) }
-            }
+        if (parsedResult.displayResult.isNullOrEmpty()) {
+            // Set the toolbar title to "Nothing in the QR"
+            binding.toolbar.title = Constants.NO_RESULT_FOUND
+            return
+        }
 
-            result.startsWith("WIFI:") -> {
-                binding.btnOpenUrl.visibility = Button.VISIBLE
-                binding.btnOpenUrl.text = "Connect to Wi-Fi"
+        // Save the scanned result to history
+        val currentTime = SimpleDateFormat("yyyy/MM/dd HH:mm:ss", Locale.getDefault()).format(Date())
+        val historyItem = HistoryItem(result = parsedResult.displayResult, timestamp = currentTime)
+        HistoryStorage.saveHistory(this, historyItem)
 
-                val wifiConfig = WifiQrDecoder.decodeWifiQrCode(result)
-                binding.qrResultText.text = """
-                Wifi Name: ${wifiConfig.ssid}
-                Password: ${wifiConfig.password}
-            """.trimIndent()
-
-                // Set a click listener for the "Connect to Wi-Fi" button
-                binding.btnOpenUrl.setOnClickListener {
-                    connectToWifi(wifiConfig.ssid, wifiConfig.password)
-                }
-            }
-
-            else -> binding.btnOpenUrl.visibility = Button.GONE
+        // Normal flow for handling various QR code types
+        binding.qrResultText.text = parsedResult.displayResult
+        binding.appName.text = parsedResult.type.toString()
+        Linkify.addLinks(binding.qrResultText, Linkify.EMAIL_ADDRESSES or Linkify.WEB_URLS or Linkify.PHONE_NUMBERS)
+        when (parsedResult.type) {
+            ParsedResultType.TEXT -> setupForText(parsedResult.displayResult)
+            ParsedResultType.URI -> setupForUrl(parsedResult.displayResult)
+            ParsedResultType.EMAIL_ADDRESS -> setupForEmail(parsedResult as EmailAddressParsedResult)
+            ParsedResultType.SMS -> setupForSms(parsedResult as SMSParsedResult)
+            ParsedResultType.TEL -> setupForPhone(parsedResult as TelParsedResult)
+            ParsedResultType.GEO -> setupForGeo(parsedResult as GeoParsedResult)
+            ParsedResultType.WIFI -> setupForWifi(parsedResult as WifiParsedResult)
+            ParsedResultType.PRODUCT -> setupForProduct(parsedResult.displayResult)
+            else -> Toast.makeText(this, Constants.UNSUPPORTED_QR_TYPE, Toast.LENGTH_SHORT).show()
         }
     }
 
+
+
+
+    private fun copyToClipboard(text: String) {
+        val clipboard = getSystemService(Context.CLIPBOARD_SERVICE) as android.content.ClipboardManager
+        val clip = android.content.ClipData.newPlainText("QR Result", text)
+        clipboard.setPrimaryClip(clip)
+        Toast.makeText(this, Constants.COPIED_TO_CLIPBOARD, Toast.LENGTH_SHORT).show()
+    }
+
+    private fun shareResult(text: String) {
+        val shareIntent = Intent(Intent.ACTION_SEND).apply {
+            type = "text/plain"
+            putExtra(Intent.EXTRA_TEXT, text)
+        }
+        startActivity(Intent.createChooser(shareIntent, "Share via"))
+    }
+
+    private fun setupForProduct(productCode: String) {
+        binding.qrResultText.text = getString(R.string.product_code_label, productCode)
+        binding.btnCopy.setText(R.string.product_code_label)
+        binding.btnCopy.setOnClickListener {
+            copyToClipboard(productCode)
+        }
+
+    }
+
+    private fun setupForText(text: String) {
+        binding.btnCopy.setOnClickListener { copyToClipboard(text) }
+        binding.btnShare.setOnClickListener { shareResult(text) }
+    }
+    private fun setupForUrl(url: String) {
+        binding.btnOpenUrl.visibility = Button.VISIBLE
+        binding.btnOpenUrl.text = Constants.OPEN_IN_BROWSER
+        binding.btnOpenUrl.setOnClickListener { openInBrowser(url) }
+        binding.btnCopy.setOnClickListener { copyToClipboard(url) }
+        binding.btnShare.setOnClickListener { shareResult(url) }
+    }
+
+
+    private fun setupForEmail(emailResult: EmailAddressParsedResult) {
+        val email = emailResult.emailAddress
+        val subject = emailResult.subject ?: "" // Handle null subject
+        val message = emailResult.body ?: "" // Handle null body
+        // Display email, subject, and message in the result text
+        binding.qrResultText.text = getString(
+            R.string.send_email_details, email, subject, message
+        )
+        binding.btnOpenUrl.visibility = Button.VISIBLE
+        binding.btnOpenUrl.text = getString(R.string.send_email)
+        binding.btnOpenUrl.setOnClickListener { sendEmail(email) }
+        binding.btnCopy.setOnClickListener { copyToClipboard("$email\n$subject\n$message") }
+        binding.btnShare.setOnClickListener { shareResult("$email\n$subject\n$message") }
+    }
+    private fun setupForSms(smsResult: SMSParsedResult) {
+        val number = smsResult.smsuri?.replace(" ", "") ?: ""
+        val body = smsResult.body ?: ""
+
+        // Construct raw SMS content
+        val smsContent = if (body.isNotEmpty()) "$number\n$body" else number
+
+        binding.btnOpenUrl.visibility = Button.VISIBLE
+        binding.btnOpenUrl.text = getString(R.string.send_sms)
+
+        binding.btnOpenUrl.setOnClickListener {
+            if (number.isNotEmpty()) {
+                sendSms(number, body)
+            } else {
+                Toast.makeText(this, "Invalid recipient number", Toast.LENGTH_SHORT).show()
+            }
+        }
+
+        // Copy SMS content directly to clipboard
+        binding.btnCopy.setOnClickListener { copyToClipboard(smsContent) }
+
+        // Share SMS content across other apps
+        binding.btnShare.setOnClickListener { shareResult(number+body) }
+    }
+
+
+
+    private fun setupForPhone(phoneResult: TelParsedResult) {
+        val phone = phoneResult.number ?: ""
+
+        binding.qrResultText.text = getString(R.string.phone_label, phone)
+        binding.btnOpenUrl.visibility = Button.VISIBLE
+        binding.btnOpenUrl.text = getString(R.string.call)
+
+        binding.btnOpenUrl.setOnClickListener { callPhone(phone) }
+        binding.btnCopy.setOnClickListener { copyToClipboard(phone) }
+        binding.btnShare.setOnClickListener { shareResult(phone) }
+    }
+
+
+    private fun setupForGeo(geoResult: GeoParsedResult) {
+        val latitude = geoResult.latitude
+        val longitude = geoResult.longitude
+
+        binding.qrResultText.text = getString(R.string.location_label, latitude, longitude)
+
+        binding.btnOpenUrl.visibility = Button.VISIBLE
+        binding.btnOpenUrl.text = getString(R.string.open_in_maps)
+        binding.btnOpenUrl.setOnClickListener { openMap(latitude, longitude) }
+        binding.btnCopy.setOnClickListener { copyToClipboard("Latitude: $latitude, Longitude: $longitude") }
+        binding.btnShare.setOnClickListener { shareResult("Latitude: $latitude, Longitude: $longitude") }
+    }
+
+
+
+    private fun setupForWifi(wifiResult: WifiParsedResult) {
+        val ssid = wifiResult.ssid ?: ""
+        val password = wifiResult.password ?: ""
+
+        binding.qrResultText.text = getString(R.string.wifi_info_label, ssid, password)
+
+        binding.btnOpenUrl.visibility = View.VISIBLE
+        binding.btnOpenUrl.text = getString(R.string.connect_to_wifi)
+        binding.btnCopy.text=getString(R.string.copy_password)
+        binding.btnOpenUrl.setOnClickListener { connectToWifi(ssid, password) }
+        binding.btnCopy.setOnClickListener {
+            if (password.isEmpty()) {
+                Toast.makeText(this, getString(R.string.no_password_to_copy), Toast.LENGTH_SHORT).show()
+            } else {
+                copyToClipboard(password)
+            }
+        }
+        binding.btnShare.setOnClickListener { shareResult("Wifi Name: $ssid, Password: $password") }
+    }
+
+
+
+
     private fun connectToWifi(ssid: String, password: String) {
-
-        // For Android 10 (API 29) and above, use WifiNetworkSuggestion
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-
             val wifiNetworkSuggestion = WifiNetworkSuggestion.Builder()
                 .setSsid(ssid)
                 .setWpa2Passphrase(password)
                 .build()
 
-            val wifiManager =
-                applicationContext.getSystemService(Context.WIFI_SERVICE) as WifiManager
+            val wifiManager = getSystemService(Context.WIFI_SERVICE) as WifiManager
             val suggestionsList = listOf(wifiNetworkSuggestion)
 
             val result = wifiManager.addNetworkSuggestions(suggestionsList)
-
             if (result == WifiManager.STATUS_NETWORK_SUGGESTIONS_SUCCESS) {
-
-                Toast.makeText(this, "Wi-Fi suggestion added for $ssid", Toast.LENGTH_SHORT).show()
+                Toast.makeText(this, "${Constants.WIFI_SUGGESTION_SUCCESS} $ssid", Toast.LENGTH_SHORT).show()
                 openWifiSettings()
             } else {
-
-                Toast.makeText(this, "Failed to add Wi-Fi suggestion", Toast.LENGTH_SHORT).show()
+                Toast.makeText(this, Constants.WIFI_SUGGESTION_FAILED, Toast.LENGTH_SHORT).show()
             }
         } else {
-
-
-            // For Android versions below 10, use WifiConfiguration
-            val wifiManager =
-                applicationContext.getSystemService(Context.WIFI_SERVICE) as WifiManager
+            val wifiManager = getSystemService(Context.WIFI_SERVICE) as WifiManager
             val wifiConfig = WifiConfiguration().apply {
                 SSID = "\"$ssid\""
                 preSharedKey = "\"$password\""
             }
 
             val networkId = wifiManager.addNetwork(wifiConfig)
-
             if (networkId != -1) {
-
                 wifiManager.enableNetwork(networkId, true)
                 wifiManager.reconnect()
                 Toast.makeText(this, "Connected to $ssid", Toast.LENGTH_SHORT).show()
                 openWifiSettings()
             } else {
-
-                Toast.makeText(this, "Failed to connect to Wi-Fi", Toast.LENGTH_SHORT).show()
+                Toast.makeText(this, Constants.WIFI_CONNECTION_FAILED, Toast.LENGTH_SHORT).show()
             }
         }
     }
-
 
     private fun openWifiSettings() {
         startActivity(Intent(android.provider.Settings.ACTION_WIFI_SETTINGS))
@@ -132,22 +251,34 @@ class ResultScreen : AppCompatActivity() {
         startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(url)))
     }
 
-    private fun copyToClipboard(decodedContent: String) {
-        val clipboard =
-            getSystemService(Context.CLIPBOARD_SERVICE) as android.content.ClipboardManager
-        val clip = android.content.ClipData.newPlainText("QR Result", decodedContent)
-        clipboard.setPrimaryClip(clip)
-        Toast.makeText(this, "Decoded result copied to clipboard", Toast.LENGTH_SHORT).show()
+    private fun sendEmail(email: String) {
+        val intent = Intent(Intent.ACTION_SENDTO).apply {
+            data = Uri.parse("mailto:$email")
+        }
+        startActivity(intent)
     }
 
-
-    private fun shareResult(text: String) {
-        val shareIntent = Intent().apply {
-            action = Intent.ACTION_SEND
-            putExtra(Intent.EXTRA_TEXT, text)
-            type = "text/plain"
+    private fun sendSms(number: String, body: String?) {
+        val intent = Intent(Intent.ACTION_SENDTO).apply {
+            data = Uri.parse(number)  // Correct formatting
+            body?.let { putExtra("sms_body", it) }
         }
-        startActivity(Intent.createChooser(shareIntent, "Share via"))
+        if (intent.resolveActivity(packageManager) != null) {
+            startActivity(intent)
+        } else {
+            Toast.makeText(this, "No SMS app found to send SMS", Toast.LENGTH_SHORT).show()
+        }
+    }
+    private fun callPhone(phone: String) {
+        val intent = Intent(Intent.ACTION_DIAL).apply {
+            data = Uri.parse("tel:$phone")
+        }
+        startActivity(intent)
+    }
+
+    private fun openMap(latitude: Double, longitude: Double) {
+        val intent = Intent(Intent.ACTION_VIEW, Uri.parse("geo:$latitude,$longitude"))
+        startActivity(intent)
     }
 
     private fun goBackToMain() {
@@ -156,7 +287,9 @@ class ResultScreen : AppCompatActivity() {
     }
 
     override fun onBackPressed() {
-        super.onBackPressed()
         goBackToMain()
+        super.onBackPressed()
     }
+
+
 }

@@ -37,7 +37,7 @@ android {
     }
 }
 dependencies {
-
+    implementation(libs.gson)
     implementation(libs.zxing.android.embedded)
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.appcompat)
