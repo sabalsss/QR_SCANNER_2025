@@ -1,5 +1,7 @@
 package com.example.qr_code_scanner
+
 import android.Manifest
+import android.animation.AnimatorSet
 import android.animation.ObjectAnimator
 import android.animation.ValueAnimator
 import android.content.ContentResolver
@@ -18,21 +20,26 @@ import android.view.View
 import android.view.animation.LinearInterpolator
 import android.widget.SeekBar
 import android.widget.Toast
+import androidx.appcompat.app.ActionBarDrawerToggle
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import androidx.core.view.GravityCompat
 import com.example.qr_code_scanner.databinding.ActivityCustomScannerBinding
-
+import com.google.android.material.bottomnavigation.BottomNavigationView
 import com.google.zxing.BinaryBitmap
 import com.google.zxing.LuminanceSource
 import com.google.zxing.common.HybridBinarizer
 import com.google.zxing.qrcode.QRCodeReader
 import com.journeyapps.barcodescanner.CaptureManager
+import com.journeyapps.barcodescanner.camera.CameraSettings
 import kotlinx.coroutines.*
 import java.io.File
 import java.io.FileOutputStream
 import java.io.InputStream
+import java.text.SimpleDateFormat
+import java.util.Date
+import java.util.Locale
 
 class CustomScannerActivity : AppCompatActivity() {
     private lateinit var binding: ActivityCustomScannerBinding
@@ -45,15 +52,20 @@ class CustomScannerActivity : AppCompatActivity() {
     private val imagePickRequestCode = 103
     private lateinit var scaleGestureDetector: ScaleGestureDetector
     private var lastZoomLevel = 0 // Track zoom level
-
+    private lateinit var drawerToggle: ActionBarDrawerToggle
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         binding = ActivityCustomScannerBinding.inflate(layoutInflater)
         setContentView(binding.root)
-        setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_UNSPECIFIED);
+        requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_UNSPECIFIED;
         startLaserAnimation()
-        setupDrawerLayout()
-        setupToolbar()
+
+        setSupportActionBar(binding.toolbar)
+        supportActionBar?.apply {
+            title = ""
+
+        }
+
         flashlightState = false
         binding.flashlightIcon.setImageResource(R.drawable.flash_light_off)
         val framingRect = binding.zxingBarcodeScanner.barcodeView.framingRect
@@ -65,6 +77,8 @@ class CustomScannerActivity : AppCompatActivity() {
             }
             binding.barcodeBorderImage.requestLayout()
         }
+
+
 
         binding.zoomSeekbar.setOnSeekBarChangeListener(object : SeekBar.OnSeekBarChangeListener {
             override fun onProgressChanged(seekBar: SeekBar?, progress: Int, fromUser: Boolean) {
@@ -78,7 +92,8 @@ class CustomScannerActivity : AppCompatActivity() {
                 // Calculate and display zoom percentage
                 val maxProgress = seekBar?.max ?: 1
                 val percentage = (adjustedProgress * 100) / maxProgress
-                binding.zoomProgressText.text = "$percentage%"
+                binding.zoomProgressText.text =
+                    "$percentage%"
             }
 
             override fun onStartTrackingTouch(seekBar: SeekBar?) {
@@ -107,7 +122,7 @@ class CustomScannerActivity : AppCompatActivity() {
         }
 
         binding.flipCamera.setOnClickListener {
-            flipCameraWithAnimation()
+            flipCameraInBackground()
         }
 
         // Open image picker when the "pick from gallery" button is clicked
@@ -116,53 +131,52 @@ class CustomScannerActivity : AppCompatActivity() {
                 openImagePicker()
             }
         }
+
+        setupBottomNav()
     }
 
-    private fun setupToolbar() {
-        // Set up the Toolbar as the ActionBar
-        setSupportActionBar(binding.toolbar)
+    private fun setupBottomNav() {
 
-        // Enable the default hamburger icon to toggle the drawer
-        supportActionBar?.setDisplayHomeAsUpEnabled(true)
-
-
-        binding.toolbar.setNavigationOnClickListener {
-            binding.drawerLayout.openDrawer(GravityCompat.START)
-        }
-    }
-
-    private fun setupDrawerLayout() {
-        binding.navView.setNavigationItemSelectedListener { menuItem ->
-            when (menuItem.itemId) {
+        binding.bottomNavigation.setOnItemSelectedListener { item ->
+            when (item.itemId) {
                 R.id.nav_scanner -> {
-                    startActivity(Intent(this, CustomScannerActivity::class.java))
+                    // If already on this fragment, do nothing
                 }
                 R.id.nav_history -> {
                     startActivity(Intent(this, HistoryActivity::class.java))
                 }
+
+                R.id.nav_settings -> {
+                    startActivity(Intent(this, SettingsActivity::class.java))
+                }
             }
-            binding.drawerLayout.closeDrawer(GravityCompat.START)
             true
+
         }
+        binding.bottomNavigation.selectedItemId = R.id.nav_scanner
     }
 
 
     private fun startLaserAnimation() {
+        setupBlinkingTextView()
         val laserView = binding.scannerLaser
         val scannerFrame = binding.barcodeBorderImage
 
         scannerFrame.post {
             val frameTop = scannerFrame.top
             val frameBottom = scannerFrame.bottom
+            // Ensure the laser matches the inner width of the barcode border
+            laserView.layoutParams.width = scannerFrame.width - 16 // Account for padding/margin
+            laserView.requestLayout()
 
             laserView.translationY = frameTop.toFloat()
 
-            // Create vertical translation animation
+            // Vertical animation within the border
             val laserTranslationAnimation = ObjectAnimator.ofFloat(
                 laserView,
                 "translationY",
                 frameTop.toFloat(),
-                frameBottom.toFloat()
+                frameBottom.toFloat() - laserView.height // Stop before exiting the bottom
             ).apply {
                 duration = 3000L
                 repeatMode = ValueAnimator.REVERSE
@@ -170,51 +184,53 @@ class CustomScannerActivity : AppCompatActivity() {
                 interpolator = LinearInterpolator()
             }
 
-            // Create alpha animation for fading effect
+            // Optional alpha animation for fading effect
             val laserAlphaAnimation = ObjectAnimator.ofFloat(
                 laserView,
                 "alpha",
-                0.5f, // Fading effect (semi-transparent)
+                0.5f, // Semi-transparent
                 1f
             ).apply {
-                duration = 1250L // Sync with translation animation
+                duration = 1500L
                 repeatMode = ValueAnimator.REVERSE
                 repeatCount = ValueAnimator.INFINITE
             }
 
-            // Play both animations together
-            laserTranslationAnimation.start()
-            laserAlphaAnimation.start()
+            // Play animations together
+            AnimatorSet().apply {
+                playTogether(laserTranslationAnimation, laserAlphaAnimation)
+                start()
+            }
+        }
+    }
+
+    private fun setupBlinkingTextView() {
+        fun createFadeAnimator(startAlpha: Float, endAlpha: Float): ObjectAnimator {
+            return ObjectAnimator.ofFloat(binding.blinkingTextView, "alpha", startAlpha, endAlpha).apply {
+                duration = 1000
+                repeatMode = ValueAnimator.REVERSE
+                repeatCount = ValueAnimator.INFINITE
+            }
+        }
+
+        val fadeIn = createFadeAnimator(0f, 1f)
+        val fadeOut = createFadeAnimator(1f, 0f)
+
+        AnimatorSet().apply {
+            playSequentially(fadeIn, fadeOut)
+            start()
         }
     }
 
 
-    private fun flipCameraWithAnimation() {
-        binding.zxingBarcodeScanner.animate()
-            .rotationY(90f)
-            .setDuration(300)
-            .withEndAction {
-                flipCameraInBackground()
-                binding.zxingBarcodeScanner.animate()
-                    .rotationY(0f)
-                    .setDuration(300)
-                    .start()
-            }
-            .start()
-    }
-
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
-        val drawerLayout = binding.drawerLayout
-        if (item.itemId == android.R.id.home) {
-            if (!drawerLayout.isDrawerOpen(GravityCompat.START)) {
-                drawerLayout.openDrawer(GravityCompat.START)
-            } else {
-                drawerLayout.closeDrawer(GravityCompat.START)
-            }
+        if (drawerToggle.onOptionsItemSelected(item)) {
             return true
         }
         return super.onOptionsItemSelected(item)
     }
+
+
 
     private fun flipCameraInBackground() {
         cameraSwitchJob?.cancel() // Cancel any existing job
@@ -258,11 +274,10 @@ class CustomScannerActivity : AppCompatActivity() {
                             .start()
                     }
 
-                    Toast.makeText(this@CustomScannerActivity, "Camera switched", Toast.LENGTH_SHORT).show()
+
                 }
             } catch (e: Exception) {
                 withContext(Dispatchers.Main) {
-                    Toast.makeText(this@CustomScannerActivity, "Camera switch failed", Toast.LENGTH_SHORT).show()
                 }
             }
         }
@@ -272,18 +287,50 @@ class CustomScannerActivity : AppCompatActivity() {
     private fun initializeQrScanner(savedInstanceState: Bundle?) {
         captureManager = CaptureManager(this, binding.zxingBarcodeScanner)
         captureManager.setShowMissingCameraPermissionDialog(false)
-
         captureManager.initializeFromIntent(intent, savedInstanceState)
         val cameraSettings = binding.zxingBarcodeScanner.barcodeView.cameraSettings
         cameraSettings.isExposureEnabled = true
+        cameraSettings.focusMode=CameraSettings.FocusMode.CONTINUOUS
+        cameraSettings.isBarcodeSceneModeEnabled=true
+        cameraSettings.isMeteringEnabled=true
         binding.zxingBarcodeScanner.barcodeView.cameraSettings = cameraSettings
 
         binding.zxingBarcodeScanner.decodeContinuous { result ->
             if (!result.text.isNullOrEmpty()) {
-                navigateToResultScreen(result.text)
+                val scanResult = result.text
+                val scanType = result.barcodeFormat.toString() // Get the type of the QR code
+
+                // Save the result to the database
+                saveResultToDatabase(scanType, scanResult)
+
+                // Navigate to the result screen
+                navigateToResultScreen(scanResult, scanType)
             }
         }
     }
+
+    private fun saveResultToDatabase(type: String, result: String, imageUri: String? = null) {
+        val currentTime = SimpleDateFormat("yyyy/MM/dd hh:mm a", Locale.getDefault()).format(Date())
+        val history = QRHistory(type = type, result = result, timestamp = currentTime, imageUri = imageUri)
+
+        CoroutineScope(Dispatchers.IO).launch {
+            val database = QRDatabase.getDatabase(this@CustomScannerActivity)
+            val existingCount = if (imageUri != null) {
+                database.qrHistoryDao().countByResultAndImageUri(result, imageUri)
+            } else {
+                database.qrHistoryDao().countByResult(result)
+            }
+            if (existingCount == 0) { // Avoid duplicate entry
+                database.qrHistoryDao().insertResult(history)
+            } else {
+                withContext(Dispatchers.Main) {
+                    Toast.makeText(this@CustomScannerActivity, "This QR code is already in history.", Toast.LENGTH_SHORT).show()
+                }
+            }
+        }
+    }
+
+
 
     private fun setCameraZoom(zoomLevel: Int) {
         binding.zxingBarcodeScanner.barcodeView.cameraInstance?.changeCameraParameters { params ->
@@ -296,9 +343,8 @@ class CustomScannerActivity : AppCompatActivity() {
         }
     }
 
-
-
-    private fun navigateToResultScreen(scanResult: String) {
+    private fun navigateToResultScreen(scanResult: String, type: String = "TEXT") {
+        saveResultToDatabase(type, scanResult) // Save result
         val intent = Intent(this, ResultScreen::class.java)
         intent.putExtra("SCAN_RESULT", scanResult)
         startActivity(intent)
@@ -364,9 +410,6 @@ class CustomScannerActivity : AppCompatActivity() {
         val bitmap = BitmapFactory.decodeStream(inputStream)
         inputStream?.close()
 
-        // Compress the image before passing it to the result screen
-        val compressedBitmap = compressImage(bitmap)
-
         val reader = QRCodeReader()
         try {
             val luminanceSource: LuminanceSource = com.google.zxing.RGBLuminanceSource(
@@ -378,12 +421,29 @@ class CustomScannerActivity : AppCompatActivity() {
             val binaryBitmap = BinaryBitmap(HybridBinarizer(luminanceSource))
             val result = reader.decode(binaryBitmap)
 
-            // Send both the result and the compressed image to the result screen
+            val currentTimestamp = SimpleDateFormat("yyyy/MM/dd hh:mm a", Locale.getDefault()).format(Date())
+            val compressedBitmap = compressImage(bitmap)
+            val imageUri = saveImageToCache(compressedBitmap)
+
+            CoroutineScope(Dispatchers.IO).launch {
+                val database = QRDatabase.getDatabase(this@CustomScannerActivity)
+                val existingCount = database.qrHistoryDao().countByResultAndImageUri(result.text, imageUri.toString())
+                if (existingCount == 0) { // Avoid duplicate entry
+                    val history = QRHistory(type = "Image QR Code", result = result.text, timestamp = currentTimestamp, imageUri = imageUri.toString())
+                    database.qrHistoryDao().insertResult(history)
+                } else {
+                    withContext(Dispatchers.Main) {
+                        Toast.makeText(this@CustomScannerActivity, "This QR code image is already in history.", Toast.LENGTH_SHORT).show()
+                    }
+                }
+            }
+
             navigateToResultScreen(result.text, compressedBitmap)
         } catch (e: Exception) {
             Toast.makeText(this, "No QR code found in this image", Toast.LENGTH_SHORT).show()
         }
     }
+
 
     private fun compressImage(bitmap: Bitmap): Bitmap {
         val maxSize = 1000 // Maximum width or height of the compressed image
@@ -412,9 +472,9 @@ class CustomScannerActivity : AppCompatActivity() {
     private fun saveImageToCache(bitmap: Bitmap): Uri {
         val cachePath = File(cacheDir, "images")
         cachePath.mkdirs()
-        val file = File(cachePath, "qr.jpg")
+        val file = File(cachePath, "scanned_qr_${System.currentTimeMillis()}.jpg")
         FileOutputStream(file).use {
-            bitmap.compress(Bitmap.CompressFormat.JPEG, 70, it) // 70% quality
+            bitmap.compress(Bitmap.CompressFormat.JPEG, 50, it)
         }
         return Uri.fromFile(file)
     }
@@ -457,18 +517,19 @@ class CustomScannerActivity : AppCompatActivity() {
 
     override fun onResume() {
         super.onResume()
-        captureManager.onResume()
+        if (::captureManager.isInitialized) {
+            captureManager.onResume()
+        }
     }
 
     override fun onPause() {
         super.onPause()
-        captureManager.onPause()
+        if (::captureManager.isInitialized) {
+            captureManager.onPause()
+        }
     }
 
-    override fun onStart() {
-        super.onStart()
-        binding.navView.setCheckedItem(R.id.nav_scanner)
-    }
+
     override fun onDestroy() {
         super.onDestroy()
         captureManager.onDestroy()
@@ -497,5 +558,4 @@ class CustomScannerActivity : AppCompatActivity() {
         }
     }
 }
-
 

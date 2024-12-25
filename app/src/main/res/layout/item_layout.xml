@@ -1,45 +1,73 @@
-<androidx.cardview.widget.CardView xmlns:android="http://schemas.android.com/apk/res/android"
+<com.google.android.material.card.MaterialCardView
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/cardview"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:layout_margin="8dp"
-    android:elevation="4dp"
-    android:background="@color/text_background"
-    android:radius="8dp">
+    app:cardElevation="4dp"
+    app:cardCornerRadius="8dp"
+    app:cardBackgroundColor="@color/white">
 
-    <LinearLayout
+    <RelativeLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:orientation="vertical"
-        android:padding="10dp">
+        android:padding="16dp">
 
-        <!-- Number -->
-        <TextView
-            android:id="@+id/numberText"
+        <!-- Checkbox for multi-selection -->
+        <CheckBox
+            android:id="@+id/checkbox"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:textSize="14sp"
-            android:text="1"
-            />
+            android:visibility="gone"
+            android:layout_alignParentStart="true"
+            android:layout_centerVertical="true" />
 
-        <!-- Result -->
+        <!-- Numbering for items -->
         <TextView
-            android:id="@+id/resultText"
+            android:id="@+id/itemNumber"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignParentEnd="true"
+            android:gravity="end"
+            android:layout_marginEnd="16dp"
+            android:text="1."
+            android:textColor="@color/black"
+            android:textStyle="bold" />
+
+        <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:textSize="16sp"
-            android:layout_marginTop="8dp"
-            android:textStyle="bold"
-            android:text="WIFI Name" />
+            android:layout_toEndOf="@id/checkbox"
+            android:layout_marginStart="8dp"
+            android:orientation="vertical">
 
-        <!-- Timestamp -->
-        <TextView
-            android:id="@+id/timestampText"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="4dp"
-            android:textSize="12sp"
-            android:text="2023/12/1"
-            android:textStyle="bold"
-           />
-    </LinearLayout>
-</androidx.cardview.widget.CardView>
+            <!-- QR Type -->
+            <TextView
+                android:id="@+id/itemType"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="QR Type: Text"
+                android:textStyle="bold"
+                android:textColor="@color/black" />
+
+            <!-- QR Result -->
+            <TextView
+                android:id="@+id/itemResult"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:ellipsize="end"
+                android:maxLines="2"
+                android:text="https://example.com"
+                android:textColor="@color/black" />
+
+            <!-- Timestamp -->
+            <TextView
+                android:id="@+id/itemTimestamp"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Scanned Time: 2023/12/18 10:30 PM"
+                android:textColor="@color/black" />
+        </LinearLayout>
+    </RelativeLayout>
+</com.google.android.material.card.MaterialCardView>

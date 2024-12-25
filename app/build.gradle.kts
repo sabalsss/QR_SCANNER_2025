@@ -1,6 +1,7 @@
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.android)
+    id("kotlin-kapt") // Enable KAPT
 }
 
 android {
@@ -15,7 +16,7 @@ android {
         targetSdk = 34
         versionCode = 1
         versionName = "1.0"
-
+        vectorDrawables.useSupportLibrary = true
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
 
@@ -37,6 +38,12 @@ android {
     }
 }
 dependencies {
+    implementation (libs.glide)
+    kapt ("com.github.bumptech.glide:compiler:4.12.0")
+    implementation (libs.material.v190)
+    implementation(libs.androidx.room.runtime)
+    implementation(libs.androidx.cardview)
+    kapt (libs.androidx.room.compiler.v250)
     implementation(libs.gson)
     implementation(libs.zxing.android.embedded)
     implementation(libs.androidx.core.ktx)

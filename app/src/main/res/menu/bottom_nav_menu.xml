@@ -8,10 +8,6 @@
         android:title="History"
         android:icon="@drawable/history_icon" />
     <item
-        android:id="@+id/nav_generate_qr"
-        android:title="Generate QR Code"
-        android:icon="@drawable/qr_scanner_icon" />
-    <item
         android:id="@+id/nav_settings"
         android:title="Settings"
         android:icon="@drawable/settings_icon" />
