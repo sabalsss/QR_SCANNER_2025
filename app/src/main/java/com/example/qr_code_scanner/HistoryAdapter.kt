@@ -1,5 +1,4 @@
 package com.example.qr_code_scanner
-
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -11,7 +10,7 @@ import com.google.zxing.client.result.ParsedResultType
 import com.google.zxing.client.result.ResultParser
 
 class HistoryAdapter(
-    private var items: List<QRHistory> = emptyList(),
+    var items: List<QRHistory> = emptyList(),
     private val onClick: (QRHistory) -> Unit,
     private val onLongClick: (QRHistory) -> Unit,
     private val onSelectionChange: (QRHistory, Boolean) -> Unit
@@ -20,7 +19,15 @@ class HistoryAdapter(
     private var isMultiSelectMode = false
     private val selectedItems = mutableSetOf<QRHistory>()
 
-    class HistoryViewHolder(private val binding: ItemLayoutBinding) :
+    // This method allows you to update the data
+    fun updateItems(newItems: List<QRHistory>) {
+        this.items = newItems
+        notifyDataSetChanged()  // Notify the adapter that data has changed
+    }
+
+
+
+    inner class HistoryViewHolder(private val binding: ItemLayoutBinding) :
         RecyclerView.ViewHolder(binding.root) {
 
         fun bind(
@@ -31,10 +38,9 @@ class HistoryAdapter(
             onLongClick: (QRHistory) -> Unit,
             onSelectionChange: (QRHistory, Boolean) -> Unit
         ) {
+            // Handle checkbox visibility and selection state
             binding.checkbox.visibility = if (isMultiSelectMode) View.VISIBLE else View.GONE
             binding.checkbox.isChecked = isSelected
-
-            binding.itemNumber.text = "${adapterPosition + 1}."
 
             // Parse the QR code result to get the display result and type
             val parsedResult = try {
@@ -43,26 +49,65 @@ class HistoryAdapter(
             } catch (e: Exception) {
                 null // Fallback to null if parsing fails
             }
-
             // Display the parsed result or fallback to raw result
             val displayResult = parsedResult?.displayResult ?: item.result
 
             // Adjust the type display: show "URL" for URI type
             val resultType = when (parsedResult?.type) {
-                ParsedResultType.URI -> "URL"
-                ParsedResultType.ADDRESSBOOK->"vCard"
-                else -> parsedResult?.type?.toString() ?: "Unknown"
+                ParsedResultType.TEXT -> {
+                    binding.qrTypeIcon.setImageResource(R.drawable.text)
+                    "Text"
+                }
+                ParsedResultType.PRODUCT -> {
+                    binding.qrTypeIcon.setImageResource(R.drawable.product)
+                    "Product"
+                }
+                ParsedResultType.TEL -> {
+                    binding.qrTypeIcon.setImageResource(R.drawable.phone)
+                    "Phone"
+                }
+                ParsedResultType.WIFI -> {
+                    binding.qrTypeIcon.setImageResource(R.drawable.wifi)
+                    "WIFI"
+                }
+                ParsedResultType.SMS -> {
+                    binding.qrTypeIcon.setImageResource(R.drawable.sms)
+                    "SMS"
+                }
+                ParsedResultType.URI -> {
+                    binding.qrTypeIcon.setImageResource(R.drawable.web)
+                    "URL"
+                }
+                ParsedResultType.ADDRESSBOOK -> {
+                    binding.qrTypeIcon.setImageResource(R.drawable.address_book)
+                    "vCard"
+                }
+                ParsedResultType.EMAIL_ADDRESS -> {
+                    binding.qrTypeIcon.setImageResource(R.drawable.email)
+                    "Email"
+                }
+                ParsedResultType.GEO -> {
+                    binding.qrTypeIcon.setImageResource(R.drawable.geo)
+                    "Geo Location"
+                }
+                ParsedResultType.CALENDAR -> {
+                    binding.qrTypeIcon.setImageResource(R.drawable.calendar)
+                    "Calendar"
+                }
+                else -> {
+                    binding.qrTypeIcon.setImageResource(R.drawable.qr_image_background)
+                    parsedResult?.type?.toString() ?: "Unknown"
+                }
             }
+
 
             binding.itemResult.text = displayResult
             binding.itemType.text = resultType
             binding.itemTimestamp.text = "Scanned Time: ${item.timestamp}"
-
             binding.root.setOnClickListener {
                 if (isMultiSelectMode) {
-                    val isChecked = binding.checkbox.isChecked
-                    binding.checkbox.isChecked = !isChecked
-                    onSelectionChange(item, !isChecked)
+                    binding.checkbox.isChecked = !isSelected
+                    onSelectionChange(item, !isSelected)
                 } else {
                     onClick(item)
                 }
@@ -77,34 +122,27 @@ class HistoryAdapter(
         }
     }
 
+    // Create a new ViewHolder for each item
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): HistoryViewHolder {
         val binding = ItemLayoutBinding.inflate(LayoutInflater.from(parent.context), parent, false)
         return HistoryViewHolder(binding)
     }
 
+    // Bind the data to the views in the ViewHolder
     override fun onBindViewHolder(holder: HistoryViewHolder, position: Int) {
         val item = items[position]
-        val isSelected = selectedItems.contains(item)
+        val isSelected = selectedItems.contains(item)  // Check if the item is selected
         holder.bind(item, isMultiSelectMode, isSelected, onClick, onLongClick, onSelectionChange)
     }
 
-    fun toggleSelectAll(selectAll: Boolean) {
-        if (selectAll) {
-            selectedItems.clear()
-            selectedItems.addAll(items)
-        } else {
-            selectedItems.clear()
-        }
-        notifyDataSetChanged()
-    }
-
-    fun getSelectedItems(): Set<QRHistory> = selectedItems
-
     override fun getItemCount(): Int = items.size
 
+    // Method to enable/disable multi-select mode
     fun setMultiSelectMode(enable: Boolean) {
         isMultiSelectMode = enable
-        if (!enable) selectedItems.clear()
+        if (!enable) {
+            selectedItems.clear()  // Clear selection when exiting multi-select mode
+        }
         notifyDataSetChanged()
     }
 
@@ -114,4 +152,7 @@ class HistoryAdapter(
         this.items = newItems
         diffResult.dispatchUpdatesTo(this)
     }
+
+
+
 }

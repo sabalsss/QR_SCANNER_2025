@@ -1,0 +1,93 @@
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+
+    <!-- ScrollView container for the layout -->
+    <ScrollView
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:background="#121212">
+
+        <!-- LinearLayout with vertical orientation to hold all checkboxes -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:padding="16dp">
+
+            <!-- CheckBox aligned to the left (default) -->
+            <CheckBox
+                android:id="@+id/beepCheckBox"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/beep"
+                android:textColor="#FFFFFF" />
+
+            <!-- CheckBox aligned to the left (default) -->
+            <CheckBox
+                android:id="@+id/vibrateCheckBox"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/vibrate"
+                android:textColor="#FFFFFF" />
+
+            <!-- CheckBox aligned to the left (default) -->
+            <CheckBox
+                android:id="@+id/copyToClipboardCheckBox"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/copy_to_clipboard"
+                android:textColor="#FFFFFF" />
+
+            <!-- CheckBox aligned to the left (default) -->
+            <CheckBox
+                android:id="@+id/urlInfoCheckBox"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/url_info"
+                android:textColor="#FFFFFF" />
+
+            <!-- CheckBox aligned to the left (default) -->
+            <CheckBox
+                android:id="@+id/batchScanModeCheckBox"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/batch_scan_mode"
+                android:textColor="#FFFFFF" />
+
+            <!-- CheckBox aligned to the left (default) -->
+            <CheckBox
+                android:id="@+id/useAutoFocusCheckBox"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/use_auto_focus"
+                android:textColor="#FFFFFF" />
+
+            <!-- CheckBox aligned to the left (default) -->
+            <CheckBox
+                android:id="@+id/touchFocusCheckBox"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/touch_focus"
+                android:textColor="#FFFFFF" />
+
+            <!-- CheckBox aligned to the left (default) -->
+            <CheckBox
+                android:id="@+id/keepDuplicatesCheckBox"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/keep_duplicates"
+                android:textColor="#FFFFFF" />
+
+            <!-- CheckBox aligned to the left (default) -->
+            <CheckBox
+                android:id="@+id/customActionCheckBox"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/custom_action"
+                android:textColor="#FFFFFF" />
+
+        </LinearLayout>
+    </ScrollView>
+
+</RelativeLayout>

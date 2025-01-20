@@ -1,0 +1,117 @@
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical">
+
+    <com.journeyapps.barcodescanner.DecoratedBarcodeView
+        android:id="@+id/zxing_barcode_scanner"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:background="@color/transparent_color"
+        app:zxing_scanner_layout="@layout/custom_barcode_scanner" />
+    <ImageView
+        android:id="@+id/barcodeBorderImage"
+        android:layout_width="match_parent"
+        android:layout_height="400dp"
+        android:layout_centerHorizontal="true"
+        android:layout_marginTop="110dp"
+        android:contentDescription="@string/app_name"
+        android:scaleType="fitXY"
+        android:src="@drawable/frame" />
+    <TextView
+        android:id="@+id/zoom_progress_text"
+        android:layout_width="wrap_content"
+        android:layout_centerInParent="true"
+        android:layout_height="wrap_content"
+        android:layout_alignTop="@id/barcodeBorderImage"
+        android:layout_below="@id/barcodeBorderImage"
+        android:contentDescription="@string/zoom_progress"
+        android:textColor="@color/scanner_line_start"
+        android:textSize="20sp"
+        android:alpha="0.5"
+        />
+
+    <LinearLayout
+        android:id="@+id/icon_container"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentBottom="true"
+        android:layout_centerHorizontal="true"
+        android:layout_marginBottom="100dp"
+        android:gravity="center"
+        android:orientation="horizontal">
+
+        <com.google.android.material.imageview.ShapeableImageView
+            android:id="@+id/flip_camera"
+            android:layout_width="40dp"
+            android:layout_height="40dp"
+            android:layout_marginEnd="20dp"
+            android:contentDescription="@string/flip_camera"
+            android:scaleType="fitXY"
+            android:src="@drawable/flip_camera"
+            android:tint="@color/white" />
+
+        <com.google.android.material.imageview.ShapeableImageView
+            android:id="@+id/flashlight_icon"
+            android:layout_width="40dp"
+            android:layout_height="40dp"
+            android:layout_marginEnd="10dp"
+            android:contentDescription="@string/Flashlight"
+            android:scaleType="fitXY"
+            android:src="@drawable/flash_light_off"
+            android:tint="@color/white" />
+
+        <com.google.android.material.imageview.ShapeableImageView
+            android:id="@+id/open_gallery"
+            android:layout_width="40dp"
+            android:layout_height="40dp"
+            android:layout_marginStart="20dp"
+            android:contentDescription="@string/open_gallery"
+            android:scaleType="fitXY"
+            android:src="@drawable/open_gallery"
+            android:tint="@color/white" />
+    </LinearLayout>
+
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_alignParentBottom="true"
+        android:layout_marginBottom="170dp">
+
+        <ImageView
+            android:id="@+id/zoom_mius"
+            android:layout_width="30dp"
+            android:layout_height="30dp"
+            android:layout_alignParentStart="true"
+            android:layout_centerVertical="true"
+            android:layout_marginStart="10dp"
+            android:contentDescription="@string/zoom_progress"
+            android:src="@drawable/zoom_out" />
+
+        <ImageView
+            android:id="@+id/zoom_plus"
+            android:layout_width="30dp"
+            android:layout_height="30dp"
+            android:layout_alignParentEnd="true"
+            android:layout_centerVertical="true"
+            android:layout_marginEnd="10dp"
+            android:contentDescription="@string/zoom_progress"
+            android:src="@drawable/zoom_in_icon" />
+
+        <SeekBar
+            android:id="@+id/zoom_seekbar"
+            android:layout_width="330dp"
+            android:layout_height="wrap_content"
+            android:layout_centerVertical="true"
+            android:layout_marginStart="8dp"
+            android:layout_marginEnd="16dp"
+            android:layout_marginBottom="25dp"
+            android:layout_toEndOf="@id/zoom_mius"
+            android:contentDescription="@string/zoom_progress"
+            android:max="100"
+            android:progress="0"
+            android:progressTint="@color/button_color"
+            android:thumbTint="@color/button_color" />
+    </RelativeLayout>
+</RelativeLayout>

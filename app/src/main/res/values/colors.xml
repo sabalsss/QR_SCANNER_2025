@@ -2,18 +2,11 @@
 <resources>
     <color name="black">#000000</color>
     <color name="white">#FFFFFF</color>
-    <color name="toolbar_color">#6AB0D8</color>
-    <color name="text_background">#FFFFFF</color>
-    <color name="primary_text">#212121</color>
-
-    <color name="secondary_text">#757575</color>
-    <color name="button_color">#6CB0DB</color>
-
+    <color name="image_background">#A4CEEB</color>
+    <color name="drawer_background">#1F2352</color>
+    <color name="drawer_bg">#F7F7F7</color>
+    <color name="button_color">#6176ED</color>
+    <color name="border_color">#5271ff</color>
     <color name="transparent_color">#00000000</color>
-    <color name="scanner_line_start">#39FF14</color>
-
-    <color name="scanner_line_middle">#8939FF14</color>
-    <color name="icon_tint">#1565C0</color>
-    <color name="rounded_background">#2e2b2c</color>
-
+    <color name="scanner_line_start">#34FA97</color>
 </resources>

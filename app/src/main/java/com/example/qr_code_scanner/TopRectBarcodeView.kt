@@ -13,28 +13,18 @@ class TopRectBarcodeView @JvmOverloads constructor(
 ) : BarcodeView(context, attrs, defStyleAttr) {
 
     override fun calculateFramingRect(container: Rect?, surface: Rect?): Rect {
-        val frameSize = framingRectSize
+        // Get the full container's dimensions (entire screen)
         val containerWidth = container?.width() ?: 0
+        val containerHeight = container?.height() ?: 0
 
-        // Calculate frame position with the same top margin as the ImageView
-        val left = (containerWidth - frameSize.width) / 2
-        val top = dpToPx(160) // Match ImageView's marginTop
-        val right = left + frameSize.width
-        val bottom = top + frameSize.height
-
-        return Rect(left, top, right, bottom)
+        // Set the frame to cover the full container (entire screen)
+        return Rect(0, 0, containerWidth, containerHeight)
     }
-
-
 
     override fun getFramingRectSize(): Size {
-        // Convert DP to pixels and set width and height
-        val width = dpToPx(250) // Desired width in DP
-        val height = dpToPx(300) // Desired height in DP
+        // Return the full screen dimensions for the viewfinder
+        val width = resources.displayMetrics.widthPixels
+        val height = resources.displayMetrics.heightPixels
         return Size(width, height)
-    }
-
-    private fun dpToPx(dp: Int): Int {
-        return (dp * resources.displayMetrics.density).toInt()
     }
 }

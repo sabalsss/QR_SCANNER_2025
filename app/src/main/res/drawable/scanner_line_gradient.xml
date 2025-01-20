@@ -1,7 +1,0 @@
-<shape xmlns:android="http://schemas.android.com/apk/res/android">
-    <gradient
-        android:startColor="@color/scanner_line_start"
-        android:centerColor="@color/scanner_line_middle"
-        android:endColor="@color/scanner_line_start"
-        android:angle="0" />
-</shape>

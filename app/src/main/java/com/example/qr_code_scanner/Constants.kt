@@ -3,7 +3,6 @@ package com.example.qr_code_scanner
 object Constants {
 
     const val NO_RESULT_FOUND = "No result found"
-    const val UNSUPPORTED_QR_TYPE = "Unsupported QR type"
     const val RESULT_SCREEN="Result Screen"
     // Button Texts and UI Strings
     const val OPEN_IN_BROWSER = "Open in Browser"

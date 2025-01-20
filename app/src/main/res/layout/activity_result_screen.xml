@@ -1,38 +1,38 @@
 <?xml version="1.0" encoding="utf-8"?>
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    xmlns:app="http://schemas.android.com/apk/res-auto">
-
+    android:background="@color/image_background">
+<!--    activity_result.xml-->
     <!-- ActionBar with Back Button -->
     <androidx.appcompat.widget.Toolbar
         android:id="@+id/toolbar"
         android:layout_width="match_parent"
         android:layout_height="?attr/actionBarSize"
         android:background="@drawable/toolbar_bg"
-        app:titleTextColor="@color/white"
-        app:popupTheme="@style/ThemeOverlay.AppCompat.Light"
-        android:elevation="4dp">
-
+        android:elevation="4dp"
+        app:titleTextColor="@color/white">
 
         <com.google.android.material.imageview.ShapeableImageView
             android:id="@+id/type_of_qr_icon"
-            android:layout_width="30dp"
+            android:layout_width="40dp"
             android:layout_height="30dp"
             android:layout_alignParentStart="true"
-            android:src="@drawable/app_icon"
-            android:contentDescription="@string/app_name" />
+            android:contentDescription="@string/app_name"
+            android:src="@mipmap/ic_launcher_round" />
 
         <TextView
             android:id="@+id/custom_toolbar_title"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="@string/app_name"
+            android:layout_marginStart="5dp"
             android:ellipsize="end"
-            android:layout_marginStart="20dp"
             android:maxLines="1"
-            android:textSize="25sp"
-            android:textColor="@color/white" />
+            android:text="@string/app_name"
+            android:textStyle="bold"
+            android:textColor="@color/white"
+            android:textSize="20sp" />
     </androidx.appcompat.widget.Toolbar>
 
     <!-- Result Text Area -->
@@ -40,106 +40,161 @@
         android:id="@+id/qr_result_text"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:textSize="16sp"
         android:layout_below="@id/toolbar"
+        android:background="@color/white"
+        android:ellipsize="none"
+        android:lineSpacingExtra="6dp"
+        android:maxLines="15"
         android:padding="20dp"
         android:scrollbars="vertical"
-        android:background="@color/primary_text"
-        android:textColor="@color/white"
-        android:ellipsize="none"
         android:scrollHorizontally="false"
-        android:maxLines="15"
-        android:lineSpacingExtra="6dp" />
+        android:textColor="@color/black"
+        android:textSize="16sp" />
 
     <TextView
         android:id="@+id/timestamp_text"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_below="@id/qr_result_text"
-        android:padding="4dp"
-        android:textColor="@color/white"
-        android:textSize="14sp"
-        android:textStyle="italic"
         android:gravity="center"
-        android:background="@color/secondary_text" />
-
-    <!-- Horizontal LinearLayout for Buttons -->
+        android:background="@color/drawer_background"
+        android:padding="4dp"
+        android:textStyle="italic"
+        android:textColor="@color/white"
+        android:textSize="14sp" />
     <LinearLayout
         android:id="@+id/button_container"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:orientation="horizontal"
-        android:gravity="center"
-
         android:layout_below="@id/qr_result_text"
-        android:layout_marginTop="30dp"
-        android:weightSum="3">
+        android:layout_marginTop="23dp"
+        android:orientation="vertical">
 
-        <!-- Copy Button -->
-        <androidx.appcompat.widget.AppCompatButton
-            android:id="@+id/btn_copy"
-            android:layout_width="0dp"
+        <!-- First Row for Copy, Share, Connect -->
+        <LinearLayout
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:text="@string/Copy"
-            android:textColor="@color/white"
-            android:background="@drawable/button_bg" />
+            android:orientation="horizontal"
+            android:gravity="center">
 
-        <!-- Share Button -->
-        <androidx.appcompat.widget.AppCompatButton
-            android:id="@+id/btn_share"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:layout_margin="3dp"
-            android:text="@string/share"
-            android:textColor="@color/white"
-            android:background="@drawable/button_bg" />
+            <!-- Copy Button -->
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btn_copy"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:backgroundTint="@color/button_color"
+                app:icon="@drawable/content_copy_24px"
+                app:iconPadding="4dp"
+                app:iconTint="@color/white"
+                android:padding="10dp"
+                app:iconSize="20dp"
+                app:iconGravity="textStart"
+                android:textStyle="bold"
+                android:text="@string/Copy"
+                android:layout_margin="5dp"
+                android:textColor="@color/white"
+                android:textSize="14sp"/>
 
-        <!-- Connect Button -->
-        <androidx.appcompat.widget.AppCompatButton
-            android:id="@+id/btn_connect"
-            android:layout_width="0dp"
+            <!-- Share Button -->
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btn_share"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:backgroundTint="@color/button_color"
+                app:icon="@drawable/share_24px"
+                app:iconPadding="4dp"
+                app:iconTint="@color/white"
+                app:iconSize="20dp"
+                app:iconGravity="textStart"
+                android:padding="10dp"
+                android:textStyle="bold"
+                android:text="@string/share"
+                android:layout_margin="5dp"
+                android:textColor="@color/white"
+                android:textSize="14sp"/>
+
+            <!-- Connect Button -->
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btn_connect"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:backgroundTint="@color/button_color"
+                app:icon="@drawable/wifi"
+                app:iconPadding="4dp"
+                app:iconTint="@color/white"
+                app:iconSize="20dp"
+                app:iconGravity="textStart"
+                android:padding="10dp"
+                android:text="@string/Connect"
+                android:textStyle="bold"
+                android:layout_margin="5dp"
+                android:visibility="gone"
+                android:textColor="@color/white"
+                android:textSize="14sp"/>
+        </LinearLayout>
+
+        <!-- Second Row for Open URL and Extra Opener -->
+        <LinearLayout
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:text="@string/Connect"
-            android:visibility="gone"
-            android:textColor="@color/white"
-            android:background="@drawable/toolbar_bg" />
+            android:orientation="horizontal"
+            android:gravity="center">
+
+            <!-- Open URL Button -->
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btn_open_url"
+                android:layout_width="180dp"
+                android:layout_height="wrap_content"
+                android:backgroundTint="@color/button_color"
+                app:icon="@drawable/open_in_new_24px"
+                app:iconPadding="4dp"
+                app:iconTint="@color/white"
+                android:padding="5dp"
+                app:iconSize="20dp"
+                app:iconGravity="textStart"
+                android:layout_margin="10dp"
+                android:textStyle="bold"
+                android:text="@string/open_url"
+                android:textColor="@color/white"
+                android:textSize="14sp"/>
+
+            <!-- Extra Opener Button -->
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/extra_opener"
+                android:layout_width="180dp"
+                android:layout_height="wrap_content"
+                android:backgroundTint="@color/button_color"
+                app:icon="@drawable/open_in_new_24px"
+                app:iconPadding="4dp"
+                app:iconTint="@color/white"
+                app:iconSize="20dp"
+                app:iconGravity="textStart"
+                android:text="@string/open_url"
+                android:textStyle="bold"
+                android:textColor="@color/white"
+                android:textSize="14sp"/>
+        </LinearLayout>
     </LinearLayout>
 
-    <!-- Open URL Button -->
-    <androidx.appcompat.widget.AppCompatButton
-        android:id="@+id/btn_open_url"
-        android:layout_width="200dp"
-        android:layout_height="wrap_content"
+    <!-- QR Result Image Container -->
+    <RelativeLayout
+        android:id="@+id/qr_result_image_container"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
         android:layout_below="@id/button_container"
-        android:layout_centerHorizontal="true"
-        android:layout_marginTop="3dp"
-        android:text="@string/open_url"
-        android:textColor="@color/white"
-        android:background="@drawable/button_bg" />
-
-    <androidx.appcompat.widget.AppCompatButton
-        android:id="@+id/extra_opener"
-        android:layout_width="200dp"
-        android:layout_height="wrap_content"
-        android:layout_below="@id/btn_open_url"
-        android:layout_centerHorizontal="true"
-        android:layout_marginTop="10dp"
-        android:text="@string/open_url"
-        android:textColor="@color/white"
-        android:visibility="gone"
-        android:background="@drawable/button_bg" />
-
-    <!-- ImageView to show scanned image -->
-    <ImageView
-        android:id="@+id/qr_result_image"
-        android:layout_width="200dp"
-        android:layout_height="200dp"
-        android:layout_below="@id/extra_opener"
         android:layout_centerInParent="true"
-        android:layout_marginTop="16dp"
-        android:scaleType="fitXY"
-        android:contentDescription="@string/qr_result_image" />
+        android:background="@color/drawer_background"
+        android:layout_marginTop="100dp">
+        <ImageView
+            android:id="@+id/qr_result_image"
+            android:layout_width="250dp"
+            android:layout_height="250dp"
+            android:layout_centerInParent="true"
+            android:src="@mipmap/ic_launcher_round"
+            android:contentDescription="@string/qr_result_image"
+            android:scaleType="fitXY" />
+    </RelativeLayout>
 </RelativeLayout>

@@ -9,14 +9,22 @@ import android.net.wifi.WifiNetworkSuggestion
 import android.os.Build
 import android.os.Bundle
 import android.provider.CalendarContract
+import android.text.Layout
+import android.text.TextUtils
 import android.text.util.Linkify
+import android.util.Log
 import android.view.View
 import android.widget.Button
 import android.widget.Toast
+import androidx.activity.OnBackPressedCallback
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.content.ContextCompat
+import com.bumptech.glide.Glide
+
 import com.example.qr_code_scanner.databinding.ActivityResultScreenBinding
 import com.google.zxing.Result
 import com.google.zxing.client.result.*
+
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
@@ -34,6 +42,21 @@ class ResultScreen : AppCompatActivity() {
             title = Constants.RESULT_SCREEN
         }
         // Handle the back arrow click
+
+        onBackPressedDispatcher.addCallback(this, object : OnBackPressedCallback(true) {
+            override fun handleOnBackPressed() {
+                val fromScanner = intent.getBooleanExtra("FROM_SCANNER", false)
+                if (fromScanner) {
+                    finish()
+                } else {
+                    if (isEnabled) {
+                        isEnabled = false
+                        onBackPressedDispatcher.onBackPressed()
+                    }
+                }
+            }
+        })
+
         binding.toolbar.setNavigationOnClickListener { onBackPressed() }
         binding.toolbar.navigationIcon?.setTint(resources.getColor(R.color.white, theme))
 
@@ -41,25 +64,36 @@ class ResultScreen : AppCompatActivity() {
         binding.toolbar.title = Constants.RESULT_SCREEN
         val scanResultString = intent.getStringExtra("SCAN_RESULT") ?: Constants.NO_RESULT_FOUND
         val scanType = intent.getStringExtra("SCAN_TYPE") ?: "Unknown Type"
-        val scannedTime = intent.getStringExtra("SCAN_TIME") ?: getCurrentTimestamp()
+        val scannedTime = intent.getStringExtra("SCAN_TIME") ?: getCurrentTimestamp() // Ensure a default value
         val imageUriString = intent.getStringExtra("IMAGE_URI")
         binding.qrResultText.text = scanResultString
         binding.customToolbarTitle.text = scanType
         binding.timestampText.text = getString(R.string.scanned_time, scannedTime)
-        imageUriString?.let {
-            val imageUri = Uri.parse(it)
-            binding.qrResultImage.setImageURI(imageUri)
-        } ?: run {
-            binding.qrResultImage.visibility = View.GONE
-        }
-        // Set t
-        // Parse the result if it's a fresh scan
+
+        setResultImage(imageUriString)
+
+
         if (scanResultString != Constants.NO_RESULT_FOUND) {
             val scanResult = Result(scanResultString, null, null, null)
             handleBarcodeResult(scanResult)
         }
 
 
+    }
+    private fun setResultImage(imageUriString: String?) {
+        if (!imageUriString.isNullOrEmpty()) {
+            val imageUri = Uri.parse(imageUriString)
+            Log.d("ResultScreen", "Loading image from URI: $imageUri")
+            binding.qrResultImageContainer.visibility = View.VISIBLE
+            Glide.with(this)
+                .load(imageUri)
+                .placeholder(R.mipmap.ic_launcher_round)
+                .error(R.drawable.error_24px)
+                .into(binding.qrResultImage)
+        } else {
+            binding.qrResultImageContainer.visibility = View.GONE
+            Log.e("ResultScreen", "No IMAGE_URI provided or found")
+        }
     }
 
     private fun getCurrentTimestamp(): String {
@@ -79,10 +113,12 @@ class ResultScreen : AppCompatActivity() {
         // Update the UI with parsed result
         binding.qrResultText.text = parsedResult.displayResult
         binding.customToolbarTitle.text = parsedResult.type.toString()
-
+        val linkColor = ContextCompat.getColor(this, R.color.black) // Get color value
         // Avoid applying Linkify for Calendar type
         if (parsedResult.type != ParsedResultType.CALENDAR) {
             Linkify.addLinks(binding.qrResultText, Linkify.EMAIL_ADDRESSES or Linkify.WEB_URLS or Linkify.PHONE_NUMBERS)
+
+            binding.qrResultText.setLinkTextColor(linkColor) // Set link text
         }
 
         // Handle different QR types or show generic actions
@@ -96,11 +132,16 @@ class ResultScreen : AppCompatActivity() {
             ParsedResultType.WIFI -> setupForWifi(parsedResult as WifiParsedResult)//done
             ParsedResultType.PRODUCT -> setupForProduct(parsedResult as ProductParsedResult)
             ParsedResultType.CALENDAR -> setupForCalendar(parsedResult as CalendarParsedResult)
+
+            ParsedResultType.VIN -> setupForVIN(parsedResult as VINParsedResult)
+            ParsedResultType.ISBN -> setupForISBN(parsedResult as ISBNParsedResult)
+
             ParsedResultType.ADDRESSBOOK->setupForAddressBook(parsedResult as AddressBookParsedResult)
             // For any other type, we'll treat it as text or provide a generic action
             else -> {
                 binding.btnOpenUrl.visibility = Button.VISIBLE
                 binding.btnOpenUrl.text = getString(R.string.search_for, parsedResult.displayResult)
+
                 binding.btnOpenUrl.setOnClickListener {
                     openSearchInBrowser(parsedResult.displayResult)
                 }
@@ -110,18 +151,35 @@ class ResultScreen : AppCompatActivity() {
         }
     }
 
+    private fun setupForISBN(isbnParsedResult: ISBNParsedResult) {
+        binding.customToolbarTitle.text=getString(R.string.ISBN)
+        binding.qrResultText.text =isbnParsedResult.displayResult
+        binding.btnOpenUrl.visibility = Button.GONE
+        copyToClipboard(isbnParsedResult.displayResult)
+
+    }
+
+    private fun setupForVIN(vinParsedResult: VINParsedResult) {
+        binding.customToolbarTitle.text=getString(R.string.VIN)
+        binding.qrResultText.text=vinParsedResult.displayResult
+        binding.btnOpenUrl.visibility = Button.GONE
+        copyToClipboard(vinParsedResult.displayResult)
+
+    }
+
     private fun setupForCalendar(calendarParsedResult: CalendarParsedResult) {
         // Extract information from CalendarParsedResult
+
         binding.typeOfQrIcon.setImageResource(R.drawable.calendar)
         val summary = calendarParsedResult.summary ?: "No Summary"
-        val startTimestamp = calendarParsedResult.getStartTimestamp()
-        val endTimestamp = calendarParsedResult.getEndTimestamp()
+        val startTimestamp = calendarParsedResult.startTimestamp
+        val endTimestamp = calendarParsedResult.endTimestamp
         val location = calendarParsedResult.location ?: "No Location"
         val description = calendarParsedResult.description ?: "No Description"
-        val isAllDay = calendarParsedResult.isStartAllDay()
+        val isAllDay = calendarParsedResult.isStartAllDay
 
         // Format date for display
-        val dateFormat = if (isAllDay) {
+        if (isAllDay) {
             SimpleDateFormat("yyyy-MM-dd", Locale.getDefault())
         } else {
             SimpleDateFormat("yyyy-MM-dd HH:mm", Locale.getDefault())
@@ -133,6 +191,7 @@ class ResultScreen : AppCompatActivity() {
         // Setup action buttons
         binding.btnOpenUrl.visibility = Button.VISIBLE
         binding.btnOpenUrl.text = getString(R.string.add_event)
+        binding.btnOpenUrl.setIconResource(R.drawable.event_24px)
         binding.btnOpenUrl.setOnClickListener {
             addToCalendar(summary, startTimestamp, endTimestamp, location, description)
         }
@@ -168,6 +227,8 @@ class ResultScreen : AppCompatActivity() {
         binding.customToolbarTitle.text=getString(R.string.Vcard)
         binding.extraOpener.visibility = Button.VISIBLE
         binding.typeOfQrIcon.setImageResource(R.drawable.address_book)
+        binding.btnOpenUrl.setIconResource(R.drawable.phone)
+        binding.extraOpener.setIconResource(R.drawable.email)
         binding.btnCopy.visibility=Button.VISIBLE
         binding.btnOpenUrl.text = getString(R.string.call)
         binding.extraOpener.text=getString(R.string.send_email)
@@ -176,6 +237,7 @@ class ResultScreen : AppCompatActivity() {
         binding.btnShare.setOnClickListener {
             shareResult(addressBookParsedResult.toString())
         }
+
         binding.btnOpenUrl.setOnClickListener {
             callPhone(addressBookParsedResult.phoneNumbers.firstOrNull().toString())
         }
@@ -225,7 +287,9 @@ class ResultScreen : AppCompatActivity() {
 
         // Update the "Search FOR RESULT" button
         binding.btnOpenUrl.visibility = Button.VISIBLE
+        binding.btnOpenUrl.setIconResource(R.drawable.text)
         binding.btnOpenUrl.text=getString(R.string.search_for,text)
+        binding.btnOpenUrl.maxLines=1
         binding.btnOpenUrl.setOnClickListener {
             // Open search in browser
             openSearchInBrowser(text)
@@ -233,16 +297,32 @@ class ResultScreen : AppCompatActivity() {
     }
 
     private fun openSearchInBrowser(query: String) {
-        val searchUri = Uri.parse("https://www.google.com/search?q=$query")
+        // Retrieve the base URL from strings.xml
+        val baseUrl = getString(R.string.base_google_search_url)
+
+        // Construct the search URI
+        val searchUri = Uri.parse(baseUrl + query)
+
+        // Create an intent to open the browser
         val intent = Intent(Intent.ACTION_VIEW, searchUri)
         startActivity(intent)
     }
 
+
     private fun setupForUrl(url: String) {
+
         binding.btnOpenUrl.visibility = Button.VISIBLE
         binding.btnOpenUrl.text = Constants.OPEN_IN_BROWSER
+        binding.btnOpenUrl.setIconResource(R.drawable.web)
         binding.customToolbarTitle.text=getString(R.string.URL)
         binding.typeOfQrIcon.setImageResource(R.drawable.web)
+        binding.qrResultText.apply {
+            maxLines = 2 // Set max lines to 2
+            ellipsize = TextUtils.TruncateAt.END // Truncate with ellipsis at the end
+            isSingleLine = false // Ensure it wraps to a new line if needed
+            hyphenationFrequency = Layout.HYPHENATION_FREQUENCY_NORMAL // Optional: Improves word wrapping
+        }
+
 
         binding.btnOpenUrl.setOnClickListener { openInBrowser(url) }
         binding.btnCopy.setOnClickListener { copyToClipboard(url) }
@@ -255,12 +335,15 @@ class ResultScreen : AppCompatActivity() {
         val subject = emailResult.subject ?: "" // Handle null subject
         val message = emailResult.body ?: "" // Handle null body
         binding.typeOfQrIcon.setImageResource(R.drawable.email)
+        binding.customToolbarTitle.text=getString(R.string.email_name)
         // Display email, subject, and message in the result text
         binding.qrResultText.text = getString(
             R.string.send_email_details, email, subject, message
         )
         binding.btnOpenUrl.visibility = Button.VISIBLE
+        binding.btnOpenUrl.setIconResource(R.drawable.email)
         binding.btnOpenUrl.text = getString(R.string.send_email)
+
         binding.btnOpenUrl.setOnClickListener { sendEmail(email) }
         binding.btnCopy.setOnClickListener { copyToClipboard("$email\n$subject\n$message") }
         binding.btnShare.setOnClickListener { shareResult("$email\n$subject\n$message") }
@@ -275,6 +358,7 @@ class ResultScreen : AppCompatActivity() {
         binding.extraOpener.visibility = Button.VISIBLE
         binding.typeOfQrIcon.setImageResource(R.drawable.sms)
         binding.extraOpener.text = getString(R.string.call)
+        binding.extraOpener.setIconResource(R.drawable.phone)
         binding.extraOpener.setOnClickListener {
             if (number.isNotEmpty()) {
                 callPhone(number)
@@ -286,6 +370,7 @@ class ResultScreen : AppCompatActivity() {
         // Set up the main button for sending SMS
         binding.btnOpenUrl.visibility = Button.VISIBLE
         binding.btnOpenUrl.text = getString(R.string.send_sms)
+        binding.btnOpenUrl.setIconResource(R.drawable.sms)
         binding.btnOpenUrl.setOnClickListener {
             if (number.isNotEmpty()) {
                 sendSms(number, body)
@@ -316,7 +401,7 @@ class ResultScreen : AppCompatActivity() {
             .drawable.phone)
         binding.btnOpenUrl.visibility = Button.VISIBLE
         binding.btnOpenUrl.text = getString(R.string.call)
-
+        binding.btnOpenUrl.setIconResource(R.drawable.phone)
         binding.btnOpenUrl.setOnClickListener { callPhone(phone) }
         binding.btnCopy.setOnClickListener { copyToClipboard(phone) }
         binding.btnShare.setOnClickListener { shareResult(phone) }
@@ -327,10 +412,11 @@ class ResultScreen : AppCompatActivity() {
         val latitude = geoResult.latitude
         val longitude = geoResult.longitude
         binding.typeOfQrIcon.setImageResource(R.drawable.geo)
-
+        binding.customToolbarTitle.text=getString(R.string.geo_name)
         binding.qrResultText.text = geoResult.displayResult
         binding.btnOpenUrl.visibility = Button.VISIBLE
         binding.btnOpenUrl.text = getString(R.string.open_in_maps)
+        binding.btnOpenUrl.setIconResource(R.drawable.geo)
         binding.btnOpenUrl.setOnClickListener { openMap(latitude, longitude) }
         binding.btnCopy.setOnClickListener { copyToClipboard(geoResult.displayResult) }
         binding.btnShare.setOnClickListener { shareResult(geoResult.displayResult) }
@@ -341,13 +427,17 @@ class ResultScreen : AppCompatActivity() {
     private fun setupForWifi(wifiResult: WifiParsedResult) {
         val ssid = wifiResult.ssid ?: ""
         val password = wifiResult.password ?: ""
+        val encryptionType=wifiResult.networkEncryption?:""
         binding.typeOfQrIcon.setImageResource(R.drawable.wifi)
-        binding.qrResultText.text = getString(R.string.wifi_info_label, ssid, password)
 
-        binding.btnOpenUrl.visibility = View.VISIBLE
-        binding.btnOpenUrl.text = getString(R.string.connect_to_wifi)
+        binding.qrResultText.text = getString(R.string.wifi_info_label, ssid, password,encryptionType)
+        binding.btnOpenUrl.visibility=View.GONE
+        binding.btnConnect.visibility=View.VISIBLE
         binding.btnCopy.text=getString(R.string.copy_password)
-        binding.btnOpenUrl.setOnClickListener { connectToWifi(ssid, password) }
+        binding.btnConnect.text = getString(R.string.connect_to_wifi)
+        binding.btnConnect.setIconResource(R.drawable.wifi)
+        binding.btnConnect.setOnClickListener { connectToWifi(ssid, password) }
+
         binding.btnCopy.setOnClickListener {
             if (password.isEmpty()) {
                 Toast.makeText(this, getString(R.string.no_password_to_copy), Toast.LENGTH_SHORT).show()
@@ -356,10 +446,10 @@ class ResultScreen : AppCompatActivity() {
             }
 
         }
-        binding.btnShare.setOnClickListener { shareResult("Wifi Name: $ssid, Password: $password") }
+        val sharableText=getString(R.string.wifi_info_label, ssid, password,encryptionType)
+        binding.btnShare.setOnClickListener { shareResult(sharableText)
+        }
     }
-
-
 
 
     private fun connectToWifi(ssid: String, password: String) {
@@ -443,16 +533,6 @@ class ResultScreen : AppCompatActivity() {
     private fun openMap(latitude: Double, longitude: Double) {
         val intent = Intent(Intent.ACTION_VIEW, Uri.parse("geo:$latitude,$longitude"))
         startActivity(intent)
-    }
-
-    private fun goBackToMain() {
-        val intent = Intent(this, CustomScannerActivity::class.java)
-        startActivity(intent)
-    }
-
-    override fun onBackPressed() {
-        goBackToMain()
-        super.onBackPressed()
     }
 
 
