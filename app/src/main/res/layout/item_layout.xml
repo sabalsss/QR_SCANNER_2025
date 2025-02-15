@@ -4,15 +4,16 @@
     android:id="@+id/cardview"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:layout_margin="2dp"
-    app:cardElevation="2dp"
-    app:cardCornerRadius="3dp"
-    app:cardBackgroundColor="@color/white">
+    android:layout_margin="10dp"
+    app:cardElevation="10dp"
+    app:cardCornerRadius="15dp"
+    app:cardBackgroundColor="@color/card_background">
 
+<!--    item_layout.xml-->
     <RelativeLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:padding="10dp">
+        android:padding="15dp">
 
         <!-- Image Icon -->
         <ImageView
@@ -24,27 +25,15 @@
             android:layout_marginTop="25dp"
             android:contentDescription="@string/app_name"
             android:scaleType="centerInside"
-            app:tint="@color/black" />
-
-        <!-- Checkbox for multi-selection -->
-        <com.google.android.material.checkbox.MaterialCheckBox
-            android:id="@+id/checkbox"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_alignParentEnd="true"
-            android:layout_alignParentTop="true"
-            android:layout_centerHorizontal="true"
-            android:layout_marginTop="15dp"
-            app:buttonTint="@color/scanner_line_start"
-            android:layout_marginEnd="8dp"
-            android:gravity="end" />
+            app:tint="@color/white" />
 
         <!-- LinearLayout for Text Content -->
         <LinearLayout
-            android:layout_width="match_parent"
+            android:id="@+id/text_view"
+            android:layout_width="280dp"
             android:layout_height="wrap_content"
-            android:layout_toStartOf="@id/checkbox"
             android:layout_marginStart="40dp"
+            android:padding="7dp"
             android:orientation="vertical">
 
             <!-- QR Type -->
@@ -52,9 +41,11 @@
                 android:id="@+id/itemType"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="QR Type: Text"
+                android:text="@string/qr_type_unknown"
                 android:textStyle="bold"
-                android:textColor="@color/black" />
+                android:maxLines="1"
+                android:textSize="22sp"
+                android:textColor="@color/scanner_line_start" />
 
             <!-- QR Result -->
             <TextView
@@ -62,18 +53,45 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:ellipsize="end"
-                android:maxLines="2"
-                android:text="https://example.com"
-                android:textColor="@color/black" />
+                android:maxLines="3"
+                android:layout_marginTop="3dp"
+                android:text="@string/no_qr_scanned"
+                android:textColor="@color/white" />
 
             <!-- Timestamp -->
             <TextView
                 android:id="@+id/itemTimestamp"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Scanned Time: 2023/12/18 10:30 PM"
-                android:textColor="@color/black" />
+                android:text="@string/scanned_time"
+                android:maxLines="1"
+                android:textStyle="bold"
+                android:layout_marginTop="10dp"
+                android:textColor="@color/white" />
         </LinearLayout>
+
+        <!-- Tick Icon -->
+        <ImageView
+            android:id="@+id/tickIcon"
+            android:layout_width="30dp"
+            android:layout_height="30dp"
+            android:layout_alignParentEnd="true"
+            android:layout_alignTop="@id/text_view"
+            android:src="@drawable/done_outline_24px"
+            android:contentDescription="@string/select_item"
+            app:tint="@color/white"/>
+
+        <ImageView
+            android:id="@+id/menuButton"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:src="@drawable/three_dot_menu"
+            android:contentDescription="@string/download_result"
+            android:padding="15dp"
+            android:layout_below="@id/tickIcon"
+            android:layout_alignParentEnd="true"
+            />
+
 
     </RelativeLayout>
 </com.google.android.material.card.MaterialCardView>

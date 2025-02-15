@@ -4,8 +4,8 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="@color/image_background">
-<!--    activity_result.xml-->
-    <!-- ActionBar with Back Button -->
+
+    <!-- Toolbar (Fixed at the Top) -->
     <androidx.appcompat.widget.Toolbar
         android:id="@+id/toolbar"
         android:layout_width="match_parent"
@@ -28,173 +28,186 @@
             android:layout_height="wrap_content"
             android:layout_marginStart="5dp"
             android:ellipsize="end"
+            android:fontFamily="sans-serif"
             android:maxLines="1"
             android:text="@string/app_name"
-            android:textStyle="bold"
             android:textColor="@color/white"
-            android:textSize="20sp" />
+            android:textSize="20sp"
+            android:textStyle="bold" />
     </androidx.appcompat.widget.Toolbar>
 
-    <!-- Result Text Area -->
-    <TextView
-        android:id="@+id/qr_result_text"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_below="@id/toolbar"
-        android:background="@color/white"
-        android:ellipsize="none"
-        android:lineSpacingExtra="6dp"
-        android:maxLines="15"
-        android:padding="20dp"
-        android:scrollbars="vertical"
-        android:scrollHorizontally="false"
-        android:textColor="@color/black"
-        android:textSize="16sp" />
-
-    <TextView
-        android:id="@+id/timestamp_text"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_below="@id/qr_result_text"
-        android:gravity="center"
-        android:background="@color/drawer_background"
-        android:padding="4dp"
-        android:textStyle="italic"
-        android:textColor="@color/white"
-        android:textSize="14sp" />
-    <LinearLayout
-        android:id="@+id/button_container"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_below="@id/qr_result_text"
-        android:layout_marginTop="23dp"
-        android:orientation="vertical">
-
-        <!-- First Row for Copy, Share, Connect -->
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:orientation="horizontal"
-            android:gravity="center">
-
-            <!-- Copy Button -->
-            <com.google.android.material.button.MaterialButton
-                android:id="@+id/btn_copy"
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:backgroundTint="@color/button_color"
-                app:icon="@drawable/content_copy_24px"
-                app:iconPadding="4dp"
-                app:iconTint="@color/white"
-                android:padding="10dp"
-                app:iconSize="20dp"
-                app:iconGravity="textStart"
-                android:textStyle="bold"
-                android:text="@string/Copy"
-                android:layout_margin="5dp"
-                android:textColor="@color/white"
-                android:textSize="14sp"/>
-
-            <!-- Share Button -->
-            <com.google.android.material.button.MaterialButton
-                android:id="@+id/btn_share"
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:backgroundTint="@color/button_color"
-                app:icon="@drawable/share_24px"
-                app:iconPadding="4dp"
-                app:iconTint="@color/white"
-                app:iconSize="20dp"
-                app:iconGravity="textStart"
-                android:padding="10dp"
-                android:textStyle="bold"
-                android:text="@string/share"
-                android:layout_margin="5dp"
-                android:textColor="@color/white"
-                android:textSize="14sp"/>
-
-            <!-- Connect Button -->
-            <com.google.android.material.button.MaterialButton
-                android:id="@+id/btn_connect"
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:backgroundTint="@color/button_color"
-                app:icon="@drawable/wifi"
-                app:iconPadding="4dp"
-                app:iconTint="@color/white"
-                app:iconSize="20dp"
-                app:iconGravity="textStart"
-                android:padding="10dp"
-                android:text="@string/Connect"
-                android:textStyle="bold"
-                android:layout_margin="5dp"
-                android:visibility="gone"
-                android:textColor="@color/white"
-                android:textSize="14sp"/>
-        </LinearLayout>
-
-        <!-- Second Row for Open URL and Extra Opener -->
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:orientation="horizontal"
-            android:gravity="center">
-
-            <!-- Open URL Button -->
-            <com.google.android.material.button.MaterialButton
-                android:id="@+id/btn_open_url"
-                android:layout_width="180dp"
-                android:layout_height="wrap_content"
-                android:backgroundTint="@color/button_color"
-                app:icon="@drawable/open_in_new_24px"
-                app:iconPadding="4dp"
-                app:iconTint="@color/white"
-                android:padding="5dp"
-                app:iconSize="20dp"
-                app:iconGravity="textStart"
-                android:layout_margin="10dp"
-                android:textStyle="bold"
-                android:text="@string/open_url"
-                android:textColor="@color/white"
-                android:textSize="14sp"/>
-
-            <!-- Extra Opener Button -->
-            <com.google.android.material.button.MaterialButton
-                android:id="@+id/extra_opener"
-                android:layout_width="180dp"
-                android:layout_height="wrap_content"
-                android:backgroundTint="@color/button_color"
-                app:icon="@drawable/open_in_new_24px"
-                app:iconPadding="4dp"
-                app:iconTint="@color/white"
-                app:iconSize="20dp"
-                app:iconGravity="textStart"
-                android:text="@string/open_url"
-                android:textStyle="bold"
-                android:textColor="@color/white"
-                android:textSize="14sp"/>
-        </LinearLayout>
-    </LinearLayout>
-
-    <!-- QR Result Image Container -->
-    <RelativeLayout
-        android:id="@+id/qr_result_image_container"
+    <!-- Scrollable Content -->
+    <ScrollView
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:layout_below="@id/button_container"
-        android:layout_centerInParent="true"
-        android:background="@color/drawer_background"
-        android:layout_marginTop="100dp">
-        <ImageView
-            android:id="@+id/qr_result_image"
-            android:layout_width="250dp"
-            android:layout_height="250dp"
-            android:layout_centerInParent="true"
-            android:src="@mipmap/ic_launcher_round"
-            android:contentDescription="@string/qr_result_image"
-            android:scaleType="fitXY" />
-    </RelativeLayout>
+        android:layout_below="@id/toolbar"
+        android:fillViewport="true">
+
+        <RelativeLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content">
+
+            <!-- Result Text Area -->
+            <TextView
+                android:id="@+id/qr_result_text"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:background="@color/white"
+                android:lineSpacingExtra="6dp"
+                android:padding="14dp"
+                android:textIsSelectable="true"
+                android:scrollbars="vertical"
+                android:textColor="@color/black"
+                android:textSize="20sp" />
+
+            <!-- Timestamp -->
+            <TextView
+                android:id="@+id/timestamp_text"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_below="@id/qr_result_text"
+                android:background="@color/image_background"
+                android:gravity="center"
+                android:padding="5dp"
+                android:textColor="@color/white"
+                android:textSize="16sp" />
+
+            <!-- Buttons -->
+            <LinearLayout
+                android:id="@+id/button_container"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_below="@id/timestamp_text"
+                android:orientation="vertical">
+
+                <!-- First Row -->
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:gravity="center"
+                    android:orientation="horizontal"
+
+                    >
+
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/btn_copy"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_margin="5dp"
+                        android:background="?attr/selectableItemBackground"
+                        android:backgroundTint="@color/transparent_color"
+                        android:text="@string/Copy"
+                        android:textColor="@color/button_color"
+                        android:textSize="16sp"
+                        android:textStyle="bold"
+                        app:icon="@drawable/content_copy_24px"
+                        app:iconGravity="top"
+
+                        app:iconPadding="4dp"
+                        app:iconSize="30dp"
+                        app:iconTint="@color/button_color" />
+
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/btn_share"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_margin="5dp"
+                        android:background="?attr/selectableItemBackground"
+                        android:backgroundTint="@color/transparent_color"
+                        android:text="@string/share"
+                        android:textColor="@color/button_color"
+                        android:textSize="16sp"
+                        android:textStyle="bold"
+                        app:icon="@drawable/share_24px"
+                        app:iconGravity="top"
+                        app:iconPadding="4dp"
+                        app:iconSize="30dp"
+                        app:iconTint="@color/button_color" />
+
+
+                </LinearLayout>
+
+                <!-- Second Row -->
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:gravity="center"
+                    android:orientation="horizontal">
+
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/btn_connect"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_margin="3dp"
+                        android:background="?attr/selectableItemBackground"
+                        android:backgroundTint="@color/transparent_color"
+                        android:maxLines="1"
+                        android:text="@string/connect_to_wifi"
+                        android:textColor="@color/button_color"
+                        android:textSize="16sp"
+                        android:textStyle="bold"
+                        android:visibility="gone"
+                        app:icon="@drawable/wifi"
+                        app:iconGravity="top"
+                        app:iconPadding="4dp"
+                        app:iconSize="30dp"
+                        app:iconTint="@color/button_color" />
+
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/btn_open_url"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_margin="10dp"
+                        android:background="?attr/selectableItemBackground"
+                        android:backgroundTint="@color/transparent_color"
+                        android:text="@string/open_url"
+                        android:textColor="@color/button_color"
+                        android:textSize="14sp"
+                        android:textStyle="bold"
+                        android:visibility="gone"
+                        app:icon="@drawable/open_in_new_24px"
+                        app:iconGravity="top"
+                        app:iconPadding="4dp"
+                        app:iconSize="30dp"
+                        app:iconTint="@color/button_color" />
+
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/extra_opener"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_margin="10dp"
+                        android:background="?attr/selectableItemBackground"
+                        android:backgroundTint="@color/transparent_color"
+                        android:text="@string/open_url"
+                        android:textColor="@color/button_color"
+                        android:textSize="14sp"
+                        android:textStyle="bold"
+                        android:visibility="gone"
+                        app:icon="@drawable/open_in_new_24px"
+                        app:iconGravity="top"
+                        app:iconPadding="4dp"
+                        app:iconSize="30dp"
+                        app:iconTint="@color/button_color" />
+                </LinearLayout>
+            </LinearLayout>
+
+            <!-- QR Result Image -->
+            <RelativeLayout
+                android:id="@+id/qr_result_image_container"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:layout_below="@id/button_container">
+
+                <ImageView
+                    android:id="@+id/qr_result_image"
+                    android:layout_width="250dp"
+                    android:layout_height="250dp"
+                    android:layout_centerInParent="true"
+                    android:contentDescription="@string/qr_result_image"
+                    android:scaleType="fitCenter"
+                    android:src="@mipmap/ic_launcher_round" />
+            </RelativeLayout>
+
+        </RelativeLayout>
+    </ScrollView>
 </RelativeLayout>

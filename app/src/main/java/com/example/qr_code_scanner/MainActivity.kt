@@ -1,4 +1,5 @@
 package com.example.qr_code_scanner
+
 import android.Manifest
 import android.content.pm.ActivityInfo
 import android.content.pm.PackageManager
@@ -12,6 +13,7 @@ import androidx.core.content.ContextCompat
 import androidx.drawerlayout.widget.DrawerLayout
 import androidx.fragment.app.Fragment
 import com.example.qr_code_scanner.databinding.ActivityMainBinding
+
 class MainActivity : AppCompatActivity() {
     private lateinit var binding: ActivityMainBinding
     private lateinit var drawerLayout: DrawerLayout
@@ -22,10 +24,22 @@ class MainActivity : AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+
         requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_PORTRAIT
         binding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
+        setupDrawer()
+        checkCameraPermission()
+
+        if (savedInstanceState == null) {
+            initializeDefaultFragment()
+        }
+
+        setupNavigationListener()
+    }
+
+    private fun setupDrawer() {
         drawerLayout = binding.drawerLayout
         setSupportActionBar(binding.toolbar)
         toggle = ActionBarDrawerToggle(
@@ -34,40 +48,6 @@ class MainActivity : AppCompatActivity() {
         )
         drawerLayout.addDrawerListener(toggle)
         toggle.syncState()
-
-        checkCameraPermission()
-
-        if (savedInstanceState == null) {
-            replaceFragment(CustomScannerFragment())
-            binding.navigationView.setCheckedItem(R.id.nav_scanner)
-        }
-
-        binding.navigationView.setNavigationItemSelectedListener { item ->
-            if (System.currentTimeMillis() - lastClickTime < clickTime) return@setNavigationItemSelectedListener false
-            lastClickTime = System.currentTimeMillis()
-
-            val selectedFragment = when (item.itemId) {
-                R.id.nav_scanner -> {
-                    val currentFragment = supportFragmentManager.findFragmentById(R.id.fragment_container)
-                    if (currentFragment is CustomScannerFragment) {
-                        drawerLayout.closeDrawers()
-                        return@setNavigationItemSelectedListener false
-                    }
-                    CustomScannerFragment()
-                }
-                R.id.nav_history -> HistoryFragment()
-                R.id.nav_settings -> SettingsFragment()
-                else -> null
-            }
-
-            selectedFragment?.let {
-                replaceFragment(it)
-                drawerLayout.closeDrawers()
-            }
-            toggle.syncState() // Sync the drawer state after fragment change
-            true
-        }
-
     }
 
     private fun checkCameraPermission() {
@@ -84,16 +64,37 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-    override fun onRequestPermissionsResult(
-        requestCode: Int,
-        permissions: Array<out String>,
-        grantResults: IntArray
-    ) {
-        super.onRequestPermissionsResult(requestCode, permissions, grantResults)
-        if (requestCode == cameraPermissionRequestCode && grantResults.isNotEmpty() && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-            initializeFragment()
-        } else {
-            Toast.makeText(this, "Camera permission is required to scan QR codes", Toast.LENGTH_SHORT).show()
+    private fun initializeDefaultFragment() {
+        replaceFragment(
+            CustomScannerFragment(),
+            addToBackStack = false
+        )
+        binding.navigationView.setCheckedItem(R.id.nav_scanner)
+    }
+
+    private fun setupNavigationListener() {
+        binding.navigationView.setNavigationItemSelectedListener { item ->
+            if (System.currentTimeMillis() - lastClickTime < clickTime) return@setNavigationItemSelectedListener false
+            lastClickTime = System.currentTimeMillis()
+
+            val selectedFragment = when (item.itemId) {
+                R.id.nav_scanner -> {
+                    val currentFragment = supportFragmentManager.findFragmentById(R.id.fragment_container)
+                    if (currentFragment is CustomScannerFragment) {
+                        drawerLayout.closeDrawers()
+                        return@setNavigationItemSelectedListener false
+                    }
+                    CustomScannerFragment()
+                }
+
+                R.id.nav_history -> HistoryFragment()
+                R.id.nav_settings -> SettingsFragment()
+                else -> null
+            }
+
+            selectedFragment?.let { replaceFragment(it) }
+            toggle.syncState() // Sync the drawer state after fragment change
+            true
         }
     }
 
@@ -104,75 +105,93 @@ class MainActivity : AppCompatActivity() {
     private fun replaceFragment(fragment: Fragment, addToBackStack: Boolean = true) {
         val transaction = supportFragmentManager.beginTransaction()
 
-        // Check if the fragment already exists in the manager
-        val existingFragment = supportFragmentManager.findFragmentByTag(fragment::class.java.simpleName)
-
-        if (existingFragment != null) {
-            transaction.replace(R.id.fragment_container, existingFragment)
-        } else {
-            transaction.replace(R.id.fragment_container, fragment, fragment::class.java.simpleName)
+        // Avoid fragment replacement if it's already the active fragment
+        val currentFragment = supportFragmentManager.findFragmentById(R.id.fragment_container)
+        if (currentFragment != null && currentFragment.javaClass == fragment.javaClass) {
+            drawerLayout.closeDrawers()
         }
 
+        transaction.replace(R.id.fragment_container, fragment, fragment::class.java.simpleName)
         transaction.setReorderingAllowed(true)
         if (addToBackStack) transaction.addToBackStack(null)
         transaction.commit()
+
+        // Close the drawer immediately after the fragment is replaced
+        drawerLayout.closeDrawers()
 
         updateToolbar(fragment)
         updateNavigationDrawerSelection(fragment)
         toggle.syncState()
     }
+
     private fun updateToolbar(fragment: Fragment) {
         setSupportActionBar(binding.toolbar)
 
         supportActionBar?.apply {
-            // Set the title based on the fragment
             title = when (fragment) {
                 is HistoryFragment -> getString(R.string.History)
                 is SettingsFragment -> getString(R.string.settings_title)
-                else -> getString(R.string.app_name) // Default title
+                else -> getString(R.string.scanner_fragment) // Default title
             }
 
-            // Set the icon based on the fragment
-            val toolbarIcon = when (fragment) {
-                is CustomScannerFragment -> R.drawable.qr_code_2_24px
-                is HistoryFragment -> R.drawable.history_icon
-                is SettingsFragment -> R.drawable.settings_icon
-                else -> R.drawable.qr_code_2_24px // Default icon
-            }
-
-            setLogo(toolbarIcon) // Set the icon in the toolbar
-            setDisplayHomeAsUpEnabled(true)
-            setHomeAsUpIndicator(R.drawable.ic_menu)
-
-            // Adjust toolbar appearance
-            if (fragment is CustomScannerFragment) {
-
-                binding.toolbar.setBackgroundResource(R.drawable.transparent_toolbar_bg)
-                window?.statusBarColor = ContextCompat.getColor(this@MainActivity, R.color.transparent_color) // Transparent status bar
-            } else {
-
-                binding.toolbar.setBackgroundResource(R.drawable.toolbar_bg)
+            // Customizing the home icon based on the fragment
+            when (fragment) {
+                is CustomScannerFragment -> supportActionBar?.setIcon(R.drawable.scanner_frame_toolbar)
+                is SettingsFragment -> supportActionBar?.setIcon(R.drawable.settings_icon)
+                else -> supportActionBar?.setIcon(R.drawable.history_icon)
             }
         }
     }
+
     private fun updateNavigationDrawerSelection(fragment: Fragment) {
-        binding.navigationView.setCheckedItem(when (fragment) {
-            is CustomScannerFragment -> R.id.nav_scanner
-            is HistoryFragment -> R.id.nav_history
-            is SettingsFragment -> R.id.nav_settings
-            else -> R.id.nav_scanner
-        })
+        binding.navigationView.setCheckedItem(
+            when (fragment) {
+                is CustomScannerFragment -> R.id.nav_scanner
+                is HistoryFragment -> R.id.nav_history
+                is SettingsFragment -> R.id.nav_settings
+                else -> R.id.nav_scanner
+            }
+        )
+    }
+
+    override fun onRequestPermissionsResult(
+        requestCode: Int,
+        permissions: Array<out String>,
+        grantResults: IntArray,
+    ) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults)
+
+        if (requestCode == cameraPermissionRequestCode &&
+            permissions.contains(Manifest.permission.CAMERA) &&
+            grantResults.isNotEmpty() &&
+            grantResults[0] == PackageManager.PERMISSION_GRANTED
+        ) {
+            initializeFragment()
+        } else if (requestCode == cameraPermissionRequestCode) {
+            Toast.makeText(
+                this,
+                "Camera permission is required to scan QR codes",
+                Toast.LENGTH_SHORT
+            ).show()
+        }
     }
 
     override fun onBackPressed() {
         val currentFragment = supportFragmentManager.findFragmentById(R.id.fragment_container)
-        when (currentFragment) {
-            is CustomScannerFragment -> finish()
-            is HistoryFragment -> replaceFragment(CustomScannerFragment(), addToBackStack = false)
-            is SettingsFragment -> replaceFragment(HistoryFragment(), addToBackStack = false)
-            else -> super.onBackPressed()
+
+        if (currentFragment is HistoryFragment) {
+            if (currentFragment.isMultiSelectMode) {
+                currentFragment.exitMultiSelectMode() // Exit selection mode first
+                return
+            }
+            replaceFragment(CustomScannerFragment(), addToBackStack = false)
+        } else if (currentFragment is SettingsFragment) {
+            replaceFragment(HistoryFragment(), addToBackStack = false)
+        } else {
+            super.onBackPressed()
         }
     }
+
 
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
         if (item.itemId == android.R.id.home) {

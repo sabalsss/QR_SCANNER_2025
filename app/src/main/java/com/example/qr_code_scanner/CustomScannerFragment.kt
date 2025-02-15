@@ -1,52 +1,56 @@
 package com.example.qr_code_scanner
 
-import android.Manifest
 import android.animation.AnimatorSet
 import android.animation.ValueAnimator
-
+import android.annotation.SuppressLint
 import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.net.Uri
+import android.os.Build
 import android.os.Bundle
-
+import android.os.VibrationEffect
+import android.os.Vibrator
+import android.os.VibratorManager
 import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.view.ViewTreeObserver
-import android.widget.FrameLayout
+import android.view.animation.AlphaAnimation
 import android.widget.SeekBar
 import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
-import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
 import com.example.qr_code_scanner.databinding.FragmentCustomScannerBinding
+import com.google.zxing.BarcodeFormat
 import com.google.zxing.BinaryBitmap
+import com.google.zxing.DecodeHintType
+import com.google.zxing.MultiFormatReader
 import com.google.zxing.RGBLuminanceSource
 import com.google.zxing.client.android.BeepManager
 import com.google.zxing.common.HybridBinarizer
-import com.google.zxing.qrcode.QRCodeReader
 import com.journeyapps.barcodescanner.CaptureManager
 import com.journeyapps.barcodescanner.camera.CameraSettings
 import kotlinx.coroutines.*
+import java.io.File
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
 
 class CustomScannerFragment : Fragment() {
     private var _binding: FragmentCustomScannerBinding? = null
-    private val binding by lazy { FragmentCustomScannerBinding.inflate(layoutInflater) }
+    private val binding get() = _binding!!
     private lateinit var captureManager: CaptureManager
-    private var flashlightState = false // Track flashlight state
-    private var isFrontCamera = false // Track front camera usage
-    private var cameraSwitchJob: Job? = null // Job to handle camera switching
-    private var lastZoomLevel = 0 // Track zoom level
+    private var flashlightState = false
+    private var isFrontCamera = false
+    private var cameraSwitchJob: Job? = null
+    private var lastZoomLevel = 0
     private var laserAnimatorSet: AnimatorSet? = null
     private lateinit var beepManager: BeepManager
-    private var isLaserAnimationRunning = false // Flag to track animation state
+    private lateinit var topRectBarcodeView: TopRectBarcodeView
+    private lateinit var vibrator: Vibrator
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?,
@@ -55,155 +59,86 @@ class CustomScannerFragment : Fragment() {
         return binding.root
     }
 
+    @SuppressLint("ClickableViewAccessibility")
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
+
+        vibrator = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+            val vibratorManager = requireContext().getSystemService(Context.VIBRATOR_MANAGER_SERVICE) as VibratorManager
+            vibratorManager.defaultVibrator
+        } else {
+            @Suppress("DEPRECATION")
+            requireContext().getSystemService(Context.VIBRATOR_SERVICE) as Vibrator
+        }
+        topRectBarcodeView = binding.zxingBarcodeScanner.findViewById(R.id.zxing_barcode_surface)
         initializeQrScanner(savedInstanceState)
         startLaserAnimation()
         zoomFeature()
         checkFlash()
 
         binding.flashlightIcon.setOnClickListener { toggleFlashlight() }
-
-        binding.flipCamera.setOnClickListener {
-                flipCameraInBackground()
-        }
-
-
-        binding.openGallery.setOnClickListener {
-            checkStoragePermission()
-        }
+        binding.flipCamera.setOnClickListener { flipCameraInBackground() }
+        binding.openGallery.setOnClickListener { openImagePicker() }
     }
-
-
 
     private fun checkFlash() {
         if (!isFlashlightAvailable()) {
             binding.flashlightIcon.visibility = View.GONE
-            Toast.makeText(
-                requireContext(),
-                "Flashlight not available on this device",
-                Toast.LENGTH_SHORT
-            ).show()
+            Toast.makeText(requireContext(), "Flashlight not available on this device", Toast.LENGTH_SHORT).show()
         }
     }
 
-
     private fun zoomFeature() {
-
-
-        binding.zoomPlus.setOnClickListener {
-            lastZoomLevel = (lastZoomLevel + 20).coerceAtMost(binding.zoomSeekbar.max)
-            binding.zoomSeekbar.progress = lastZoomLevel
-            setCameraZoom(lastZoomLevel)
-
-        }
-
-        binding.zoomMius.setOnClickListener {
-            lastZoomLevel = (lastZoomLevel - 20).coerceAtLeast(0)
-            binding.zoomSeekbar.progress = lastZoomLevel
-            setCameraZoom(lastZoomLevel)
-
-        }
+        binding.zoomPlus.setOnClickListener { smoothZoomChange(10) }
+        binding.zoomMinus.setOnClickListener { smoothZoomChange(-10) }
 
         binding.zoomSeekbar.setOnSeekBarChangeListener(object : SeekBar.OnSeekBarChangeListener {
             override fun onProgressChanged(seekBar: SeekBar?, progress: Int, fromUser: Boolean) {
-                if (!fromUser) return // Skip if programmatically set
-
-                // Use the progress as it is for 100% zoom level
-                val adjustedProgress = progress
-
-                setCameraZoom(adjustedProgress)
-
-                // Calculate and display zoom percentage
-                val maxProgress = seekBar?.max ?: 1
-                val percentage = (adjustedProgress * 100) / maxProgress
-                binding.zoomProgressText.text =
-                    "$percentage%"
+                if (fromUser) setCameraZoom(progress)
             }
 
-            override fun onStartTrackingTouch(seekBar: SeekBar?) {
-                binding.zoomProgressText.visibility = View.VISIBLE
-            }
-
-            override fun onStopTrackingTouch(seekBar: SeekBar?) {
-                binding.zoomProgressText.visibility = View.GONE
-            }
+            override fun onStartTrackingTouch(seekBar: SeekBar?) {}
+            override fun onStopTrackingTouch(seekBar: SeekBar?) {}
         })
-
+    }
+    private fun smoothZoomChange(change: Int) {
+        val targetZoom = (lastZoomLevel + change).coerceIn(0, binding.zoomSeekbar.max)
+        ValueAnimator.ofInt(lastZoomLevel, targetZoom).apply {
+            duration = 300
+            addUpdateListener { animator ->
+                val progress = animator.animatedValue as Int
+                binding.zoomSeekbar.progress = progress
+                setCameraZoom(progress)
+            }
+            start()
+        }
+        lastZoomLevel = targetZoom
     }
 
     private fun startLaserAnimation() {
-        val scannerFrame = binding.barcodeBorderImage
+        val line1 = binding.line1
+        val line2 = binding.line2
 
-        // Add a layout listener to ensure the layout is fully initialized
-        scannerFrame.viewTreeObserver.addOnGlobalLayoutListener(object :
-            ViewTreeObserver.OnGlobalLayoutListener {
-            override fun onGlobalLayout() {
-                scannerFrame.viewTreeObserver.removeOnGlobalLayoutListener(this)
+        val blinkAnimation = AlphaAnimation(0.8f, 0.2f).apply {
+            duration = 350
+            repeatCount = AlphaAnimation.INFINITE
+            repeatMode = AlphaAnimation.REVERSE
+        }
 
-                val frameWidth = scannerFrame.width // Dynamic width of the ImageView
-                val frameHeight = 400.dpToPx(requireContext())
-                val frameCenterX = scannerFrame.left + (frameWidth / 2) // Center X position
-                val frameCenterY = scannerFrame.top + (frameHeight / 2) // Center Y position
-                val dotCount = 8
-                val dotSpacing = 30.dpToPx(requireContext()) // Spacing between dots
-                val dotSize = 25.dpToPx(requireContext()) // Dot size in pixels
-                val horizontalOffset =
-                    18.dpToPx(requireContext()) // Offset to shift dots to the right
-
-                val dots = mutableListOf<View>()
-
-                // Create and position dots centered horizontally with an offset to the right
-                for (i in 0 until dotCount) {
-                    val dot = View(requireContext()).apply {
-                        layoutParams = FrameLayout.LayoutParams(dotSize, dotSize)
-                        background =
-                            ContextCompat.getDrawable(requireContext(), R.drawable.scanner_gradient)
-                        alpha = 1f // Set the initial opacity (50% visible)
-                    }
-                    (binding.root as ViewGroup).addView(dot)
-                    dots.add(dot)
-
-                    // Position each dot along the horizontal center line with an offset
-                    val xOffset = (i - dotCount / 2) * dotSpacing
-                    dot.translationX =
-                        (frameCenterX + xOffset - (dotSize / 2) + horizontalOffset).toFloat()
-                    dot.translationY = (frameCenterY - (dotSize / 2)).toFloat()
-                }
-
-                val dotAnimator = ValueAnimator.ofFloat(0.1f, 0.5f).apply {
-                    duration = 600L
-                    repeatMode = ValueAnimator.REVERSE
-                    repeatCount = ValueAnimator.INFINITE
-                    addUpdateListener { animator ->
-                        dots.forEach { it.alpha = animator.animatedValue as Float }
-                    }
-                }
-
-                laserAnimatorSet = AnimatorSet().apply {
-                    playTogether(dotAnimator)
-                    start()
-                    isLaserAnimationRunning = true // Mark animation as running
-                }
-            }
-        })
+        line1.startAnimation(blinkAnimation)
+        line2.startAnimation(blinkAnimation)
     }
-
-    // Extension function to convert dp to pixels
-    private fun Int.dpToPx(context: Context): Int {
-        return (this * context.resources.displayMetrics.density).toInt()
-    }
-
 
     private fun flipCameraInBackground() {
-        cameraSwitchJob?.cancel() // Cancel any existing job
-
+        cameraSwitchJob?.cancel()
+        binding.zoomSeekbar.progress=0
         cameraSwitchJob = CoroutineScope(Dispatchers.IO).launch {
             try {
                 withContext(Dispatchers.Main) {
-                    captureManager.onPause()
-                    binding.zxingBarcodeScanner.pause() // Stop scanning temporarily
+                    binding.zxingBarcodeScanner.pause()
+                    delay(300) // Small delay for better transition
+                    binding.zxingBarcodeScanner.resume()
                 }
 
                 val newCameraId = if (isFrontCamera) 0 else 1
@@ -216,70 +151,75 @@ class CustomScannerFragment : Fragment() {
                     binding.zxingBarcodeScanner.resume()
                     captureManager.onResume()
 
-                    // Toggle camera state
                     isFrontCamera = !isFrontCamera
 
-                    // Show/hide flashlight icon based on the camera being used
                     if (isFrontCamera) {
-                        // Animate hiding the flashlight icon
                         binding.flashlightIcon.animate()
                             .alpha(0f)
                             .setDuration(300)
-                            .withEndAction {
-                                binding.flashlightIcon.visibility = View.GONE
-                            }
+                            .withEndAction { binding.flashlightIcon.visibility = View.GONE }
                             .start()
                     } else {
-                        // Animate showing the flashlight icon
                         binding.flashlightIcon.visibility = View.VISIBLE
                         binding.flashlightIcon.animate()
                             .alpha(1f)
                             .setDuration(300)
                             .start()
                     }
-
-
                 }
             } catch (e: Exception) {
                 withContext(Dispatchers.Main) {
+                    Toast.makeText(requireContext(), "Failed to switch camera", Toast.LENGTH_SHORT).show()
                 }
             }
         }
     }
-
 
     private fun initializeQrScanner(savedInstanceState: Bundle?) {
         captureManager = CaptureManager(requireActivity(), binding.zxingBarcodeScanner)
         captureManager.setShowMissingCameraPermissionDialog(false)
         captureManager.initializeFromIntent(requireActivity().intent, savedInstanceState)
-        val cameraSettings = binding.zxingBarcodeScanner.barcodeView.cameraSettings
+
+        val sharedPreferences = requireContext().getSharedPreferences("ScannerSettings", Context.MODE_PRIVATE)
+        val beepAfterScan = sharedPreferences.getBoolean("BeepAfterScan", false)
+        val vibrateAfterScan = sharedPreferences.getBoolean("VibrateAfterScan", false)
+
+        val cameraSettings = topRectBarcodeView.cameraSettings
         cameraSettings.isExposureEnabled = true
-        cameraSettings.focusMode = CameraSettings.FocusMode.AUTO
-        binding.zxingBarcodeScanner.barcodeView.cameraSettings = cameraSettings
+        cameraSettings.isBarcodeSceneModeEnabled = true
+        cameraSettings.isAutoFocusEnabled = true
+        cameraSettings.focusMode = CameraSettings.FocusMode.CONTINUOUS
+        topRectBarcodeView.cameraSettings = cameraSettings
 
         beepManager = BeepManager(requireActivity())
 
-        binding.zxingBarcodeScanner.decodeContinuous { result ->
+        topRectBarcodeView.decodeContinuous { result ->
             if (!result.text.isNullOrEmpty()) {
                 val scanResult = result.text
                 val scanType = result.barcodeFormat.toString()
 
                 CoroutineScope(Dispatchers.Main).launch {
-                    // Save result in the background
                     saveResultToDatabase(scanType, scanResult)
-
-                    // Directly navigate to the result screen
                     navigateToResultScreenScan(scanResult, scanType)
+                    if (beepAfterScan) beepManager.playBeepSound()
+                    if (vibrateAfterScan) vibrateDevice()
 
-                    // Optional: Play beep sound after processing
-                    beepManager.playBeepSoundAndVibrate()
                 }
             }
         }
-
     }
 
-    private fun saveResultToDatabase(type: String, result: String, imageUri: String? = null) {
+    private fun vibrateDevice() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            vibrator.vibrate(VibrationEffect.createOneShot(200, VibrationEffect.DEFAULT_AMPLITUDE))
+        } else {
+            @Suppress("DEPRECATION")
+            vibrator.vibrate(200)
+        }
+    }
+
+
+    private fun saveResultToDatabase(type: String, result: String, imagePath: String? = null) {
         val currentTime = SimpleDateFormat("yyyy/MM/dd hh:mm a", Locale.getDefault()).format(Date())
         CoroutineScope(Dispatchers.IO).launch {
             try {
@@ -287,19 +227,16 @@ class CustomScannerFragment : Fragment() {
                 val existingEntry = database.qrHistoryDao().getHistoryByResultAndType(result, type)
 
                 if (existingEntry == null) {
-                    // Insert new result if it doesn't already exist
                     database.qrHistoryDao().insertResult(
                         QRHistory(
                             type = type,
                             result = result,
                             timestamp = currentTime,
-                            imageUri = imageUri
+                            imageUri = imagePath
                         )
                     )
                 } else {
-                    // Update timestamp if entry exists
-                    database.qrHistoryDao()
-                        .updateTimestampByResultAndType(result, type, currentTime)
+                    database.qrHistoryDao().updateTimestampByResultAndType(result, type, currentTime)
                 }
             } catch (e: Exception) {
                 Log.e("QRScanner", "Database operation failed", e)
@@ -307,40 +244,36 @@ class CustomScannerFragment : Fragment() {
         }
     }
 
-    private fun navigateToResultScreenScan(scanResult: String, scanType: String) {
-        CoroutineScope(Dispatchers.Main).launch {
-            val intent = Intent(requireActivity(), ResultScreen::class.java).apply {
-                putExtra("FROM_SCANNER", true)
-                putExtra("SCAN_RESULT", scanResult)
-                putExtra("SCAN_TYPE", scanType)
-                flags = Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_SINGLE_TOP
-            }
-            startActivity(intent)
+    private fun navigateToResultScreenScan(scanResult: String, scanType: String, imagePath: String? = null) {
+        val intent = Intent(requireActivity(), ResultScreen::class.java).apply {
+            putExtra("FROM_SCANNER", true)
+            putExtra("SCAN_RESULT", scanResult)
+            putExtra("SCAN_TYPE", scanType)
+            putExtra("IMAGE_URI", imagePath)
+            flags = Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_SINGLE_TOP
         }
+        startActivity(intent)
     }
-
 
     private fun setCameraZoom(zoomLevel: Int) {
         binding.zxingBarcodeScanner.barcodeView.cameraInstance?.changeCameraParameters { params ->
             if (params.isZoomSupported) {
                 val maxZoom = params.maxZoom
-                val scaledZoom = (zoomLevel / binding.zoomSeekbar.max.toFloat()) * maxZoom
-                params.zoom = scaledZoom.toInt()  // Use the adjusted zoom value
+                val scaledZoom = (zoomLevel / 100f) * maxZoom // Assume seekbar max is 100
+                params.zoom = scaledZoom.toInt()
             }
             params
         }
     }
 
-
     private fun toggleFlashlight() {
-
         if (flashlightState) {
             binding.zxingBarcodeScanner.setTorchOff()
-            binding.flashlightIcon.setImageResource(R.drawable.flash_light_off)
+            binding.flashlightIcon.setIconResource(R.drawable.flash_light_off)
             flashlightState = false
         } else {
             binding.zxingBarcodeScanner.setTorchOn()
-            binding.flashlightIcon.setImageResource(R.drawable.flash_light)
+            binding.flashlightIcon.setIconResource(R.drawable.flash_light)
             flashlightState = true
         }
     }
@@ -349,147 +282,128 @@ class CustomScannerFragment : Fragment() {
         return requireContext().packageManager.hasSystemFeature(PackageManager.FEATURE_CAMERA_FLASH)
     }
 
+    private fun openImagePicker() {
+        getContentLauncher.launch("image/*")
+    }
+
     private val getContentLauncher =
         registerForActivityResult(ActivityResultContracts.GetContent()) { uri: Uri? ->
-            uri?.let {
-                // Process the image and navigate after saving the result
-                CoroutineScope(Dispatchers.Main).launch {
-                    decodeImageFromUri(it)
-                }
-            }
+            uri?.let { decodeImageFromUri(it) }
         }
-
-    private fun openImagePicker() {
-        getContentLauncher.launch("image/*") // Open image picker with MIME type for images
-    }
-
-    // Register the permission request contract
-    private val requestPermissionLauncher =
-        registerForActivityResult(ActivityResultContracts.RequestPermission()) { isGranted: Boolean ->
-            if (isGranted) {
-                // Permission granted, open the image picker
-                openImagePicker()
-            } else {
-                // Handle permission denial, e.g., show a message to the user
-                Toast.makeText(
-                    context,
-                    "Storage permission is required to pick an image.",
-                    Toast.LENGTH_SHORT
-                ).show()
-            }
-        }
-
-    private fun checkStoragePermission() {
-        when {
-            ContextCompat.checkSelfPermission(
-                requireContext(),
-                Manifest.permission.WRITE_EXTERNAL_STORAGE
-            ) == PackageManager.PERMISSION_GRANTED -> {
-                openImagePicker()
-            }
-            else -> {
-                // Request permission
-                requestPermissionLauncher.launch(Manifest.permission.WRITE_EXTERNAL_STORAGE)
-            }
-        }
-    }
 
     private fun decodeImageFromUri(uri: Uri) {
         CoroutineScope(Dispatchers.IO).launch {
-            val bitmap = requireContext().contentResolver.openInputStream(uri)?.use { inputStream ->
-                val options = BitmapFactory.Options().apply {
-                    inSampleSize = 2 // Predefined based on expected size
-                    inPreferredConfig = Bitmap.Config.RGB_565 // Memory-efficient configuration
-                }
-                BitmapFactory.decodeStream(inputStream, null, options)
-            }
-
-            val reader = QRCodeReader()
-            try {
-                val luminanceSource = bitmap?.let {
-                    RGBLuminanceSource(
-                        it.width, bitmap.height,
-                        IntArray(bitmap.width * bitmap.height).also { it ->
-                            bitmap.getPixels(
-                                it,
-                                0,
-                                bitmap.width,
-                                0,
-                                0,
-                                bitmap.width,
-                                bitmap.height
-                            )
+            val bitmap = decodeBitmapFromUri(uri)
+            if (bitmap != null) {
+                val imagePath = saveImageToInternalStorage(bitmap)
+                val binaryBitmap = bitmap.let {
+                    val luminanceSource = RGBLuminanceSource(
+                        bitmap.width, bitmap.height,
+                        IntArray(bitmap.width * bitmap.height).also { pixels ->
+                            bitmap.getPixels(pixels, 0, bitmap.width, 0, 0, bitmap.width, bitmap.height)
                         }
                     )
+                    BinaryBitmap(HybridBinarizer(luminanceSource))
                 }
-                val binaryBitmap = BinaryBitmap(HybridBinarizer(luminanceSource))
-                val result = reader.decode(binaryBitmap)
 
-                saveResultToDatabase(
-                    result.barcodeFormat.toString(),
-                    result.text,
-                    uri.toString() // Save the image URI
-                )
+                try {
+                    val reader = MultiFormatReader()
+                    val hints = hashMapOf(
+                        DecodeHintType.TRY_HARDER to true,
+                        DecodeHintType.POSSIBLE_FORMATS to BarcodeFormat.entries // Support all formats
+                    )
 
-                bitmap?.let {
-                    navigateToResultScreen(result.text, uri.toString()) // Pass the URI instead of the bitmap
+                    val result = reader.decode(binaryBitmap, hints)
+                    saveResultToDatabase(result.barcodeFormat.toString(), result.text, imagePath)
+                    navigateToResultScreen(result.text, result.barcodeFormat.toString(), imagePath)
+                } catch (e: Exception) {
+                    withContext(Dispatchers.Main) {
+                        Toast.makeText(requireContext(), "Failed to decode barcode", Toast.LENGTH_SHORT).show()
+                    }
+                } finally {
+                    bitmap.recycle()
                 }
-            } catch (e: Exception) {
-                Log.e("QRScanner", "Error decoding image", e)
-            } finally {
-                bitmap?.recycle()
+            } else {
+                withContext(Dispatchers.Main) {
+                    Toast.makeText(requireContext(), "Failed to load image", Toast.LENGTH_SHORT).show()
+                }
             }
         }
     }
 
-    private fun navigateToResultScreen(scanResult: String, imageUriString: String) {
+    private fun saveImageToInternalStorage(bitmap: Bitmap): String {
+        val fileName = "QR_${System.currentTimeMillis()}.jpg"
+        val file = File(requireContext().filesDir, fileName)
+        file.outputStream().use { outputStream ->
+            bitmap.compress(Bitmap.CompressFormat.JPEG, 10, outputStream)
+        }
+        return file.absolutePath
+    }
+
+    private fun decodeBitmapFromUri(uri: Uri): Bitmap? {
+        return try {
+            requireContext().contentResolver.openInputStream(uri)?.use { inputStream ->
+                val options = BitmapFactory.Options().apply {
+                    inJustDecodeBounds = true
+                    BitmapFactory.decodeStream(inputStream, null, this)
+                    inSampleSize = calculateInSampleSize(this, 1024, 1024)
+                    inJustDecodeBounds = false
+                    inPreferredConfig = Bitmap.Config.RGB_565
+                }
+                requireContext().contentResolver.openInputStream(uri)?.use { inputStream ->
+                    BitmapFactory.decodeStream(inputStream, null, options)
+                }
+            }
+        } catch (e: Exception) {
+            Log.e("QRScanner", "Error decoding image from URI: $uri", e)
+            null
+        }
+    }
+
+    private fun calculateInSampleSize(options: BitmapFactory.Options, reqWidth: Int, reqHeight: Int): Int {
+        val (height: Int, width: Int) = options.run { outHeight to outWidth }
+        var inSampleSize = 1
+
+        if (height > reqHeight || width > reqWidth) {
+            val halfHeight: Int = height / 2
+            val halfWidth: Int = width / 2
+
+            while (halfHeight / inSampleSize >= reqHeight && halfWidth / inSampleSize >= reqWidth) {
+                inSampleSize *= 2
+            }
+        }
+
+        return inSampleSize
+    }
+
+    private fun navigateToResultScreen(scanResult: String, scanType: String, imageUri: String? = null) {
         val intent = Intent(requireContext(), ResultScreen::class.java).apply {
             putExtra("SCAN_RESULT", scanResult)
+            putExtra("SCAN_TYPE", scanType)
             putExtra("FROM_SCANNER", true)
-            putExtra("IMAGE_URI", imageUriString) // Pass the image URI to the result screen
+            putExtra("IMAGE_URI", imageUri)
             flags = Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_SINGLE_TOP
         }
         startActivity(intent)
     }
 
-
     override fun onPause() {
         super.onPause()
-        if (::captureManager.isInitialized) {
-            captureManager.onPause()
-            binding.zxingBarcodeScanner.pause()
-        }
-
-        // Stop the animation when the fragment goes into the background
-        laserAnimatorSet?.cancel()
-        isLaserAnimationRunning = false
+        binding.zxingBarcodeScanner.pause()
     }
 
     override fun onResume() {
         super.onResume()
-        if (::captureManager.isInitialized) {
-            captureManager.onResume()
-            binding.zxingBarcodeScanner.resume()
-        }
-
-        // Start the animation only if it is not already running
-        if (!isLaserAnimationRunning) {
-            startLaserAnimation()
-        }
+        binding.zxingBarcodeScanner.resume()
+        smoothZoomChange(0)
     }
 
-    override fun onStop() {
-        super.onStop()
-
-        // Only cancel the laser animation if needed
-        laserAnimatorSet?.cancel() // Stop and release laser animations
-        laserAnimatorSet = null
-        isLaserAnimationRunning = false // Mark animation as stopped
-    }
-
-    override fun onDestroy() {
-        super.onDestroy()
+    override fun onDestroyView() {
+        super.onDestroyView()
+        _binding = null
         cameraSwitchJob?.cancel()
+        laserAnimatorSet?.cancel()
+        _binding?.zxingBarcodeScanner?.pauseAndWait()
     }
 
     override fun onSaveInstanceState(outState: Bundle) {

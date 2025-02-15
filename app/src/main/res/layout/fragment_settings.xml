@@ -1,93 +1,117 @@
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
-    android:layout_height="match_parent">
+    android:layout_height="match_parent"
+    android:background="@color/card_background">
 
-    <!-- ScrollView container for the layout -->
     <ScrollView
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:background="#121212">
+        android:padding="16dp">
 
-        <!-- LinearLayout with vertical orientation to hold all checkboxes -->
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="vertical"
-            android:padding="16dp">
 
-            <!-- CheckBox aligned to the left (default) -->
-            <CheckBox
-                android:id="@+id/beepCheckBox"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="@string/beep"
-                android:textColor="#FFFFFF" />
+            android:padding="16dp"
+            android:elevation="8dp"
+            android:layout_margin="8dp"
+            android:background="@drawable/settings_card_bg">
 
-            <!-- CheckBox aligned to the left (default) -->
-            <CheckBox
-                android:id="@+id/vibrateCheckBox"
-                android:layout_width="wrap_content"
+            <!-- Beep -->
+            <LinearLayout
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:text="@string/vibrate"
-                android:textColor="#FFFFFF" />
+                android:orientation="horizontal"
+                android:background="@drawable/setting_item_bg"
+                android:padding="12dp"
+                android:layout_marginBottom="8dp">
 
-            <!-- CheckBox aligned to the left (default) -->
-            <CheckBox
-                android:id="@+id/copyToClipboardCheckBox"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="@string/copy_to_clipboard"
-                android:textColor="#FFFFFF" />
+                <TextView
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:text="@string/beep"
+                    android:textSize="18sp"
+                    android:textColor="@color/white" />
 
-            <!-- CheckBox aligned to the left (default) -->
-            <CheckBox
-                android:id="@+id/urlInfoCheckBox"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="@string/url_info"
-                android:textColor="#FFFFFF" />
+                <androidx.appcompat.widget.SwitchCompat
+                    android:id="@+id/beepCheckBox"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
 
-            <!-- CheckBox aligned to the left (default) -->
-            <CheckBox
-                android:id="@+id/batchScanModeCheckBox"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="@string/batch_scan_mode"
-                android:textColor="#FFFFFF" />
+                    />
+            </LinearLayout>
 
-            <!-- CheckBox aligned to the left (default) -->
-            <CheckBox
-                android:id="@+id/useAutoFocusCheckBox"
-                android:layout_width="wrap_content"
+            <!-- Vibrate -->
+            <LinearLayout
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:text="@string/use_auto_focus"
-                android:textColor="#FFFFFF" />
+                android:orientation="horizontal"
+                android:background="@drawable/setting_item_bg"
+                android:padding="12dp"
+                android:layout_marginBottom="8dp">
 
-            <!-- CheckBox aligned to the left (default) -->
-            <CheckBox
-                android:id="@+id/touchFocusCheckBox"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="@string/touch_focus"
-                android:textColor="#FFFFFF" />
+                <TextView
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:text="@string/vibrate"
+                    android:textSize="18sp"
+                    android:textColor="@color/white" />
 
-            <!-- CheckBox aligned to the left (default) -->
-            <CheckBox
-                android:id="@+id/keepDuplicatesCheckBox"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="@string/keep_duplicates"
-                android:textColor="#FFFFFF" />
+                <androidx.appcompat.widget.SwitchCompat
+                    android:id="@+id/vibrateCheckBox"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content" />
+            </LinearLayout>
 
-            <!-- CheckBox aligned to the left (default) -->
-            <CheckBox
-                android:id="@+id/customActionCheckBox"
-                android:layout_width="wrap_content"
+            <!-- Copy to Clipboard -->
+            <LinearLayout
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:text="@string/custom_action"
-                android:textColor="#FFFFFF" />
+                android:orientation="horizontal"
+                android:background="@drawable/setting_item_bg"
+                android:padding="12dp"
+                android:layout_marginBottom="8dp">
+
+                <TextView
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:text="@string/copy_to_clipboard"
+                    android:textSize="18sp"
+                    android:textColor="@color/white" />
+
+                <androidx.appcompat.widget.SwitchCompat
+                    android:id="@+id/copyToClipboardCheckBox"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content" />
+            </LinearLayout>
+
+            <!-- Auto Connect Wi-Fi -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:background="@drawable/setting_item_bg"
+                android:padding="12dp">
+
+                <TextView
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:text="@string/wifi_auto_connect"
+                    android:textSize="18sp"
+                    android:textColor="@color/white" />
+
+                <androidx.appcompat.widget.SwitchCompat
+                    android:id="@+id/auto_connect_wifi"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content" />
+            </LinearLayout>
 
         </LinearLayout>
-    </ScrollView>
 
+    </ScrollView>
 </RelativeLayout>

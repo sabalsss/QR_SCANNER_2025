@@ -1,117 +1,169 @@
-<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
-    android:layout_height="match_parent"
-    android:orientation="vertical">
+    android:layout_height="match_parent">
 
     <com.journeyapps.barcodescanner.DecoratedBarcodeView
         android:id="@+id/zxing_barcode_scanner"
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:background="@color/transparent_color"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
         app:zxing_scanner_layout="@layout/custom_barcode_scanner" />
+
     <ImageView
         android:id="@+id/barcodeBorderImage"
-        android:layout_width="match_parent"
-        android:layout_height="400dp"
-        android:layout_centerHorizontal="true"
-        android:layout_marginTop="110dp"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:layout_marginBottom="60dp"
         android:contentDescription="@string/app_name"
-        android:scaleType="fitXY"
-        android:src="@drawable/frame" />
-    <TextView
-        android:id="@+id/zoom_progress_text"
-        android:layout_width="wrap_content"
-        android:layout_centerInParent="true"
-        android:layout_height="wrap_content"
-        android:layout_alignTop="@id/barcodeBorderImage"
-        android:layout_below="@id/barcodeBorderImage"
-        android:contentDescription="@string/zoom_progress"
-        android:textColor="@color/scanner_line_start"
-        android:textSize="20sp"
-        android:alpha="0.5"
-        />
+        android:src="@drawable/scanner_frame"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHeight_percent="0.5"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintWidth_percent="0.9" />
+
+    <!-- Horizontal Line 1 -->
+    <ImageView
+        android:id="@+id/line1"
+        android:layout_width="250dp"
+        android:layout_height="1.5dp"
+        android:layout_marginTop="160dp"
+        android:layout_marginBottom="5dp"
+        android:background="@color/scanner_line_start"
+        android:contentDescription="@string/scanner_name"
+        app:layout_constraintTop_toTopOf="@id/barcodeBorderImage"
+        app:layout_constraintStart_toStartOf="@id/barcodeBorderImage"
+        app:layout_constraintEnd_toEndOf="@id/barcodeBorderImage"/>
+
+    <!-- Horizontal Line 2 -->
+    <ImageView
+        android:id="@+id/line2"
+        android:layout_width="250dp"
+        android:layout_height="1.5dp"
+        android:layout_marginTop="8dp"
+        android:layout_marginBottom="50dp"
+        android:background="@color/scanner_line_start"
+        android:contentDescription="@string/scanner_name"
+        app:layout_constraintTop_toBottomOf="@id/line1"
+        app:layout_constraintStart_toStartOf="@id/barcodeBorderImage"
+        app:layout_constraintEnd_toEndOf="@id/barcodeBorderImage"/>
 
     <LinearLayout
         android:id="@+id/icon_container"
-        android:layout_width="wrap_content"
+        android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:layout_alignParentBottom="true"
-        android:layout_centerHorizontal="true"
-        android:layout_marginBottom="100dp"
+        android:layout_marginBottom="30dp"
         android:gravity="center"
-        android:orientation="horizontal">
+        android:orientation="horizontal"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent">
 
-        <com.google.android.material.imageview.ShapeableImageView
+        <com.google.android.material.button.MaterialButton
             android:id="@+id/flip_camera"
-            android:layout_width="40dp"
-            android:layout_height="40dp"
-            android:layout_marginEnd="20dp"
-            android:contentDescription="@string/flip_camera"
-            android:scaleType="fitXY"
-            android:src="@drawable/flip_camera"
-            android:tint="@color/white" />
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_margin="10dp"
+            android:background="?attr/selectableItemBackground"
+            android:backgroundTint="@color/transparent_color"
+            android:padding="10dp"
+            android:text="@string/flip_camera"
+            android:textColor="@color/white"
+            android:textSize="14sp"
+            android:textStyle="bold"
+            app:icon="@drawable/flip_camera"
+            app:iconGravity="top"
+            app:iconPadding="4dp"
+            app:iconSize="24dp"
+            app:iconTint="@color/white" />
 
-        <com.google.android.material.imageview.ShapeableImageView
-            android:id="@+id/flashlight_icon"
-            android:layout_width="40dp"
-            android:layout_height="40dp"
-            android:layout_marginEnd="10dp"
-            android:contentDescription="@string/Flashlight"
-            android:scaleType="fitXY"
-            android:src="@drawable/flash_light_off"
-            android:tint="@color/white" />
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/flashlightIcon"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_margin="10dp"
+            android:background="?attr/selectableItemBackground"
+            android:backgroundTint="@color/transparent_color"
+            android:padding="10dp"
+            android:text="@string/Flashlight"
+            android:textColor="@color/white"
+            android:textSize="14sp"
+            android:textStyle="bold"
+            app:icon="@drawable/flash_light_off"
+            app:iconGravity="top"
+            app:iconPadding="4dp"
+            app:iconSize="24dp"
+            app:iconTint="@color/white" />
 
-        <com.google.android.material.imageview.ShapeableImageView
+        <com.google.android.material.button.MaterialButton
             android:id="@+id/open_gallery"
-            android:layout_width="40dp"
-            android:layout_height="40dp"
-            android:layout_marginStart="20dp"
-            android:contentDescription="@string/open_gallery"
-            android:scaleType="fitXY"
-            android:src="@drawable/open_gallery"
-            android:tint="@color/white" />
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_margin="10dp"
+            android:background="?attr/selectableItemBackground"
+            android:backgroundTint="@color/transparent_color"
+            android:padding="10dp"
+            android:text="@string/open_gallery"
+            android:textColor="@color/white"
+            android:textSize="14sp"
+            android:textStyle="bold"
+            app:icon="@drawable/open_gallery"
+            app:iconGravity="top"
+            app:iconPadding="4dp"
+            app:iconSize="24dp"
+            app:iconTint="@color/white" />
     </LinearLayout>
 
-    <RelativeLayout
-        android:layout_width="match_parent"
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:layout_alignParentBottom="true"
-        android:layout_marginBottom="170dp">
+        android:layout_marginBottom="5dp"
+        app:layout_constraintBottom_toTopOf="@id/icon_container"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent">
 
         <ImageView
-            android:id="@+id/zoom_mius"
-            android:layout_width="30dp"
-            android:layout_height="30dp"
-            android:layout_alignParentStart="true"
-            android:layout_centerVertical="true"
-            android:layout_marginStart="10dp"
+            android:id="@+id/zoom_minus"
+            android:layout_width="40dp"
+            android:layout_height="40dp"
+            android:layout_marginStart="30dp"
             android:contentDescription="@string/zoom_progress"
-            android:src="@drawable/zoom_out" />
+            android:src="@drawable/zoom_out"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent" />
 
         <ImageView
             android:id="@+id/zoom_plus"
-            android:layout_width="30dp"
-            android:layout_height="30dp"
-            android:layout_alignParentEnd="true"
-            android:layout_centerVertical="true"
-            android:layout_marginEnd="10dp"
+            android:layout_width="40dp"
+            android:layout_height="40dp"
+            android:layout_marginEnd="30dp"
             android:contentDescription="@string/zoom_progress"
-            android:src="@drawable/zoom_in_icon" />
+            android:src="@drawable/zoom_in_icon"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintTop_toTopOf="parent" />
 
         <SeekBar
             android:id="@+id/zoom_seekbar"
-            android:layout_width="330dp"
+            android:layout_width="250dp"
             android:layout_height="wrap_content"
-            android:layout_centerVertical="true"
-            android:layout_marginStart="8dp"
-            android:layout_marginEnd="16dp"
-            android:layout_marginBottom="25dp"
-            android:layout_toEndOf="@id/zoom_mius"
             android:contentDescription="@string/zoom_progress"
             android:max="100"
             android:progress="0"
             android:progressTint="@color/button_color"
-            android:thumbTint="@color/button_color" />
-    </RelativeLayout>
-</RelativeLayout>
+            android:thumb="@drawable/thumb"
+            android:thumbTint="@color/button_color"
+            app:layout_constraintBottom_toBottomOf="@id/zoom_minus"
+            app:layout_constraintEnd_toStartOf="@id/zoom_plus"
+            app:layout_constraintStart_toEndOf="@id/zoom_minus"
+            app:layout_constraintTop_toTopOf="@id/zoom_minus" />
+
+    </androidx.constraintlayout.widget.ConstraintLayout>
+
+</androidx.constraintlayout.widget.ConstraintLayout>
