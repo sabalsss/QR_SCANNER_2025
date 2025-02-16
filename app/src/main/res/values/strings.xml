@@ -2,6 +2,7 @@
     <string name="app_name">Qr Code Scanner</string>
     <string name="scanner_fragment">Scanner</string>
     <string name="Flashlight">Torch</string>
+    <string name="developer_name">Made By: Sabal Chaulagin(Student)</string>
     <string name="result">Scanned QR Result will appear here</string>
     <string name="History">History</string>
     <string name="items_selected">%1$d selected</string>

@@ -1,12 +1,18 @@
 package com.example.qr_code_scanner
 
 import android.Manifest
+import android.content.Context
+import android.content.SharedPreferences
 import android.content.pm.ActivityInfo
 import android.content.pm.PackageManager
+import android.graphics.Matrix
 import android.os.Bundle
 import android.view.MenuItem
+import android.widget.ImageView
+import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.app.ActionBarDrawerToggle
+import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
@@ -31,6 +37,7 @@ class MainActivity : AppCompatActivity() {
 
         setupDrawer()
         checkCameraPermission()
+        showFirstLaunchDialog()
 
         if (savedInstanceState == null) {
             initializeDefaultFragment()
@@ -39,6 +46,14 @@ class MainActivity : AppCompatActivity() {
         setupNavigationListener()
     }
 
+    private fun showFirstLaunchDialog() {
+        val builder = AlertDialog.Builder(this)
+        val dialogView = layoutInflater.inflate(R.layout.dialog_first_launch, null)
+        builder.setView(dialogView)
+            .setPositiveButton("OK") { dialog, _ -> dialog.dismiss() }
+            .create()
+            .show()
+    }
     private fun setupDrawer() {
         drawerLayout = binding.drawerLayout
         setSupportActionBar(binding.toolbar)
