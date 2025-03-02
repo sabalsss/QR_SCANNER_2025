@@ -5,11 +5,9 @@
         <item name="android:statusBarColor">@color/border_color</item>
 
     </style>
-    <style name="NavigationViewItemTextAppearance" parent="TextAppearance.MaterialComponents.Body1">
-        <item name="android:textSize">20sp</item>
-    </style>
 
 
     <style name="Theme.QR_CODE_SCANNER" parent="Base.Theme.QR_CODE_SCANNER" />
+
 
 </resources>

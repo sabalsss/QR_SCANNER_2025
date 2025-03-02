@@ -1,5 +1,5 @@
 <resources>
-    <string name="app_name">Qr Code Scanner</string>
+    <string name="app_name">Qr Barcode Scanner</string>
     <string name="scanner_fragment">Scanner</string>
     <string name="Flashlight">Torch</string>
     <string name="developer_name">Made By: Sabal Chaulagin(Student)</string>
@@ -18,7 +18,7 @@
     <string name="share">Share</string>
     <string name="result_page">Result</string>
     <string name="back">Go Back</string>
-    <string name="open_gallery">Open Gallery</string>
+    <string name="open_gallery">Use Image</string>
     <string name="qr_result_image">QR image</string>
     <string name="open_url">Open Website</string>
     <string name="qr_type_unknown">Unknown</string>
@@ -36,16 +36,16 @@
     <string name="geo_name">Geographic Location</string>
     <string name="send_email_details">%1$s\n%2$s\n%3$s</string>
     <string name="product_code_label">Product Code: %1$s</string>
-    <string name="wifi_info_label">Wi-Fi Name: %1$s\nPassword: %2$s\nEncryption: %3$s</string>
+    <string name="wifi_info_label">Network Name: %1$s\nPassword: %2$s\nEncryption: %3$s</string>
     <string name="phone_label">Phone: %1$s</string>
-    <string name="wifi_name_label">Wi-Fi Name: %1$s</string>
+    <string name="wifi_name_label">Network Name: %1$s</string>
     <string name="wifi_password_label">Password: %1$s</string>
     <string name="no_password_to_copy">No password to copy</string>
     <string name="open_in_maps">Open in Maps</string>
     <string name="send_sms">Send sms</string>
     <string name="base_google_search_url">https://www.google.com/search?q=</string>
     <string name="base_google_maps_search">https://www.google.com/maps/search/?api=1&amp;query=%1$s</string>
-    <string name="scanned_time">Scanned Time: %1$s</string>
+    <string name="scanned_time">%1$s</string>
     <string name="no_content_found">No content found in QR code</string>
     <string name="add_event">Add Event</string>
     <string name="select_item">Selected Item</string>
@@ -61,7 +61,7 @@
     <string name="wifi_connection_failed">Failed to connect to Wi-Fi</string>
     <string name="settings_title">Settings</string>
     <string name="beep">Beep After Scan</string>
-    <string name="wifi_auto_connect">Auto Connect to Wifi</string>
+    <string name="wifi_auto_connect">Auto Connect to Network</string>
     <string name="vibrate">Vibrate After Scan</string>
     <string name="copy_to_clipboard">Auto Copy to Clipboard</string>
     <string name="url_info">URL info</string>

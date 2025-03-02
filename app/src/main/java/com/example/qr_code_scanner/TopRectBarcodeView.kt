@@ -10,10 +10,10 @@ class TopRectBarcodeView @JvmOverloads constructor(
     defStyleAttr: Int = 0
 ) : BarcodeView(context, attrs, defStyleAttr) {
 
-    private var frameWidthDp: Float = 370f
-    private var frameHeightDp: Float = 350f
+    private var frameWidthDp: Float = 400f
+    private var frameHeightDp: Float = 370f
     private var moveTop: Float = 5f  // move top to bottom if value is >>
-    private var moveBottom: Float = 20f // move bottom to top if value is >>
+    private var moveBottom: Float = 25f // move bottom to top if value is >>
     private var moveLeft: Float = 0f
     private var moveRight: Float = 0f
 

@@ -42,6 +42,8 @@ class SettingsFragment : Fragment(R.layout.fragment_settings) {
 
     override fun onDestroyView() {
         super.onDestroyView()
-        _binding = null // Nullify binding to avoid memory leaks
+        // Nullify the binding to avoid memory leaks
+        _binding = null
     }
+
 }

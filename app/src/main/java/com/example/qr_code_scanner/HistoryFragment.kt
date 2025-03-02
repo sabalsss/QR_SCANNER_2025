@@ -12,15 +12,17 @@ import androidx.paging.LoadState
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.example.qr_code_scanner.databinding.FragmentHistoryBinding
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.cancel
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+
 class HistoryFragment : Fragment() {
     private var _binding: FragmentHistoryBinding? = null
     private val binding get() = _binding!!
+
     var isMultiSelectMode = false
     private val selectedItems = mutableSetOf<QRHistory>()
+
     // ViewModel with Paging integration
     private val viewModel: HistoryViewModel by viewModels {
         HistoryViewModelFactory(
@@ -56,16 +58,17 @@ class HistoryFragment : Fragment() {
         )
         binding.historyRecyclerView.layoutManager = LinearLayoutManager(requireContext())
         binding.historyRecyclerView.adapter = adapter
+        binding.historyRecyclerView.setHasFixedSize(true)
+        binding.historyRecyclerView.setItemViewCacheSize(20)
     }
 
     private fun deleteItem(item: QRHistory) {
         lifecycleScope.launch(Dispatchers.IO) {
             try {
-                val dao = QRDatabase.getDatabase(requireContext()).qrHistoryDao()
-                dao.deleteItem(item.id) // Perform deletion on the background thread
-
+                val dao = QRDatabase.getDatabase(requireContext().applicationContext).qrHistoryDao()
+                dao.deleteItem(item.id)
                 withContext(Dispatchers.Main) {
-                    adapter.refresh() // Refresh the adapter on the main thread
+                    adapter.refresh() // Refresh the adapter to update the UI
                 }
             } catch (e: Exception) {
                 e.printStackTrace()
@@ -80,9 +83,11 @@ class HistoryFragment : Fragment() {
     }
 
     private fun observePagedData() {
-        viewLifecycleOwner.lifecycleScope.launch {
+        viewLifecycleOwner.lifecycleScope.launch(Dispatchers.IO) {
             viewModel.pagedHistory.collectLatest { pagingData ->
-                adapter.submitData(pagingData)
+                withContext(Dispatchers.Main) {
+                    adapter.submitData(pagingData)
+                }
             }
         }
 
@@ -108,8 +113,6 @@ class HistoryFragment : Fragment() {
             }
         }
     }
-
-
 
     private fun openResultScreen(item: QRHistory) {
         val intent = Intent(requireContext(), ResultScreen::class.java).apply {
@@ -238,11 +241,14 @@ class HistoryFragment : Fragment() {
             else -> super.onOptionsItemSelected(item)
         }
     }
+
     override fun onDestroyView() {
-        super.onDestroyView()
-        viewLifecycleOwner.lifecycleScope.coroutineContext.cancel()
+        (binding.historyRecyclerView.adapter as? HistoryAdapter)?.cleanup()
+
         binding.historyRecyclerView.adapter = null
-        _binding = null
+        _binding = null  // Ensure the binding reference is cleared
+
+        super.onDestroyView()
     }
 
 

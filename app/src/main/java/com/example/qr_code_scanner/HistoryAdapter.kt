@@ -2,8 +2,6 @@ package com.example.qr_code_scanner
 
 import android.os.Environment
 import android.view.LayoutInflater
-import android.view.MenuInflater
-import android.view.MenuItem
 import android.view.View
 import android.view.ViewGroup
 import android.widget.PopupMenu
@@ -16,7 +14,6 @@ import com.google.zxing.Result
 import com.google.zxing.client.result.ParsedResultType
 import com.google.zxing.client.result.ResultParser
 import java.io.File
-import java.io.FileWriter
 
 class HistoryAdapter(
     private val onClick: (QRHistory) -> Unit,
@@ -26,7 +23,8 @@ class HistoryAdapter(
 ) : PagingDataAdapter<QRHistory, HistoryAdapter.HistoryViewHolder>(DIFF_CALLBACK) {
     private var isMultiSelectMode = false
     private val selectedItems = mutableSetOf<QRHistory>()
-    val folderName = "QR_Code_Scanner" // Folder name in Downloads
+    val folderName = "QR Barcode Scanner" // Folder name in Downloads
+
     companion object {
         private val DIFF_CALLBACK = object : DiffUtil.ItemCallback<QRHistory>() {
             override fun areItemsTheSame(oldItem: QRHistory, newItem: QRHistory): Boolean {
@@ -54,7 +52,7 @@ class HistoryAdapter(
                 val displayResult = parsedResult?.displayResult ?: it.result
 
                 binding.itemResult.text = displayResult
-                binding.itemTimestamp.text = "Scanned Time: ${it.timestamp}"
+                binding.itemTimestamp.text = it.timestamp
 
                 binding.menuButton.visibility = if (isMultiSelectMode) View.GONE else View.VISIBLE
 
@@ -147,14 +145,14 @@ class HistoryAdapter(
                 }
             }
         }
+
         private fun showPopupMenu(view: View, item: QRHistory) {
             val popupMenu = PopupMenu(view.context, view)
-            val inflater: MenuInflater = popupMenu.menuInflater
-            inflater.inflate(R.menu.history_item_menu, popupMenu.menu)
+            popupMenu.menuInflater.inflate(R.menu.history_item_menu, popupMenu.menu)
 
             // Force show icons
             try {
-                val fields = popupMenu.javaClass.getDeclaredFields()
+                val fields = popupMenu.javaClass.declaredFields
                 for (field in fields) {
                     if ("mPopup" == field.name) {
                         field.isAccessible = true
@@ -169,12 +167,11 @@ class HistoryAdapter(
                 e.printStackTrace()
             }
 
-            // Set empty titles to remove text labels
             popupMenu.menu.findItem(R.id.save_txt)?.title = "Save As Text"
             popupMenu.menu.findItem(R.id.save_csv)?.title = "Save CSV"
             popupMenu.menu.findItem(R.id.delete_item)?.title = "Delete"
 
-            popupMenu.setOnMenuItemClickListener { menuItem: MenuItem ->
+            popupMenu.setOnMenuItemClickListener { menuItem ->
                 when (menuItem.itemId) {
                     R.id.save_txt -> saveAsText(item)
                     R.id.save_csv -> saveAsCSV(item)
@@ -184,35 +181,18 @@ class HistoryAdapter(
             }
             popupMenu.show()
         }
-
-
         private fun saveAsText(item: QRHistory) {
+            val fileName = "QR_History_${item.id}.txt"
+            val appFolder = File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS), folderName)
+            if (!appFolder.exists()) appFolder.mkdirs()
 
-            val fileName = "QR_History_${item.id}_${System.currentTimeMillis()}.txt"
-
-            // Get the Downloads directory
-            val downloadsDir =
-                Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS)
-
-            // Create a folder with the app's name in Downloads
-            val appFolder = File(downloadsDir, folderName)
-            if (!appFolder.exists()) {
-                appFolder.mkdirs() // Create the folder if it doesn't exist
-            }
-
-            // Create the file in the app-specific folder
             val file = File(appFolder, fileName)
-
             try {
-                FileWriter(file).use { writer ->
+                file.bufferedWriter().use { writer ->
                     writer.append("QR Code Result:\n${item.result}\n")
                     writer.append("Scanned Time: ${item.timestamp}\n")
                 }
-                Toast.makeText(
-                    binding.root.context,
-                    "Saved to $folderName as $fileName",
-                    Toast.LENGTH_SHORT
-                ).show()
+                Toast.makeText(binding.root.context, "Saved to $folderName as $fileName", Toast.LENGTH_SHORT).show()
             } catch (e: Exception) {
                 Toast.makeText(binding.root.context, "Error saving TXT", Toast.LENGTH_SHORT).show()
                 e.printStackTrace()
@@ -220,8 +200,7 @@ class HistoryAdapter(
         }
 
         private fun saveAsCSV(item: QRHistory) {
-
-            val fileName = "QR_History_${System.currentTimeMillis()}.csv" // Filename with timestamp
+            val fileName = "QR_History_${item.id}.csv" // Simplified filename
 
             // Get the Downloads directory
             val downloadsDir =
@@ -229,33 +208,15 @@ class HistoryAdapter(
 
             // Create a folder with the app's name in Downloads
             val appFolder = File(downloadsDir, folderName)
-            if (!appFolder.exists()) {
-                appFolder.mkdirs() // Create the folder if it doesn't exist
-            }
+            if (!appFolder.exists()) appFolder.mkdirs()
 
             // Create the file in the app-specific folder
             val file = File(appFolder, fileName)
 
             try {
-                FileWriter(file).use { writer ->
-                    // Write the header
+                file.bufferedWriter().use { writer ->
                     writer.append("Result,Timestamp,Type,UniqueID\n")
-
-                    // Write the data for the current QR scan
-                    val resultType = when (item.type) {
-                        ParsedResultType.URI.toString() -> "URL"
-                        ParsedResultType.TEXT.toString() -> "Text"
-                        ParsedResultType.WIFI.toString() -> "WiFi"
-                        ParsedResultType.PRODUCT.toString() -> "Product"
-                        ParsedResultType.TEL.toString() -> "Phone"
-                        ParsedResultType.SMS.toString() -> "SMS"
-                        ParsedResultType.ADDRESSBOOK.toString() -> "vCard"
-                        ParsedResultType.EMAIL_ADDRESS.toString() -> "E-mail"
-                        ParsedResultType.GEO.toString() -> "Geo Location"
-                        ParsedResultType.CALENDAR.toString() -> "Calendar"
-                        else -> item.type
-                    }
-                    writer.append("\"${item.result}\",\"${item.timestamp}\",\"$resultType\",\"${item.id}\"\n")
+                    writer.append("\"${item.result}\",\"${item.timestamp}\",\"${item.type}\",\"${item.id}\"\n")
                 }
                 Toast.makeText(
                     binding.root.context,
@@ -268,8 +229,8 @@ class HistoryAdapter(
             }
         }
 
-
     }
+
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): HistoryViewHolder {
         val binding = ItemLayoutBinding.inflate(LayoutInflater.from(parent.context), parent, false)
@@ -301,5 +262,10 @@ class HistoryAdapter(
         snapshot().items.indexOf(item).takeIf { it != -1 }?.let { position ->
             notifyItemChanged(position)
         }
+    }
+
+    fun cleanup() {
+        // Clear any references that might cause leaks
+        selectedItems.clear()
     }
 }

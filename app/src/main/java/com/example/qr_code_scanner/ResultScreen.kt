@@ -16,6 +16,7 @@ import android.text.Layout
 import android.text.TextUtils
 import android.text.util.Linkify
 import android.util.Log
+import android.util.TypedValue
 import android.view.View
 import android.widget.Button
 import android.widget.Toast
@@ -26,7 +27,19 @@ import com.bumptech.glide.Glide
 import com.bumptech.glide.load.engine.DiskCacheStrategy
 import com.example.qr_code_scanner.databinding.ActivityResultScreenBinding
 import com.google.zxing.Result
-import com.google.zxing.client.result.*
+import com.google.zxing.client.result.AddressBookParsedResult
+import com.google.zxing.client.result.CalendarParsedResult
+import com.google.zxing.client.result.EmailAddressParsedResult
+import com.google.zxing.client.result.GeoParsedResult
+import com.google.zxing.client.result.ISBNParsedResult
+import com.google.zxing.client.result.ParsedResult
+import com.google.zxing.client.result.ParsedResultType
+import com.google.zxing.client.result.ProductParsedResult
+import com.google.zxing.client.result.ResultParser
+import com.google.zxing.client.result.SMSParsedResult
+import com.google.zxing.client.result.TelParsedResult
+import com.google.zxing.client.result.VINParsedResult
+import com.google.zxing.client.result.WifiParsedResult
 import java.io.File
 import java.text.SimpleDateFormat
 import java.util.Date
@@ -66,7 +79,8 @@ class ResultScreen : AppCompatActivity() {
         binding.toolbar.navigationIcon?.setTint(resources.getColor(R.color.white, theme))
 
         binding.toolbar.title = getString(R.string.result_screen)
-        val scanResultString = intent.getStringExtra("SCAN_RESULT") ?: getString(R.string.no_result_found)
+        val scanResultString =
+            intent.getStringExtra("SCAN_RESULT") ?: getString(R.string.no_result_found)
         val scanType = intent.getStringExtra("SCAN_TYPE") ?: "Unknown Type"
         val scannedTime = intent.getStringExtra("SCAN_TIME") ?: getCurrentTimestamp()
         val imageUriString = intent.getStringExtra("IMAGE_URI")
@@ -87,6 +101,8 @@ class ResultScreen : AppCompatActivity() {
             val imageFile = File(imagePath)
             if (imageFile.exists()) {
                 binding.qrResultImageContainer.visibility = View.VISIBLE
+
+                // Load the compressed image
                 Glide.with(this)
                     .load(imageFile)
                     .placeholder(R.mipmap.ic_launcher_round)
@@ -104,7 +120,8 @@ class ResultScreen : AppCompatActivity() {
     }
 
     private fun getCurrentTimestamp(): String {
-        return SimpleDateFormat("yyyy/MM/dd hh:mm a", Locale.getDefault()).format(Date())
+        val pattern = "MMM d yyyy hh:mm a EEEE"
+        return SimpleDateFormat(pattern, Locale.getDefault()).format(Date())
     }
 
     private fun handleBarcodeResult(result: Result) {
@@ -142,6 +159,7 @@ class ResultScreen : AppCompatActivity() {
                     connectToWifi(parsedResult.ssid, parsedResult.password)
                 }
             }
+
             ParsedResultType.PRODUCT -> setupForProduct(parsedResult as ProductParsedResult)
             ParsedResultType.CALENDAR -> setupForCalendar(parsedResult as CalendarParsedResult)
             ParsedResultType.VIN -> setupForVIN(parsedResult as VINParsedResult)
@@ -158,6 +176,7 @@ class ResultScreen : AppCompatActivity() {
             }
         }
     }
+
 
     private fun setupForISBN(isbnParsedResult: ISBNParsedResult) {
         binding.customToolbarTitle.text = getString(R.string.ISBN)
@@ -188,7 +207,6 @@ class ResultScreen : AppCompatActivity() {
         val location = calendarParsedResult.location ?: "No Location"
         val newLocation = getString(R.string.base_google_maps_search, location)
         val description = calendarParsedResult.description ?: "No Description"
-        val isAllDay = calendarParsedResult.isStartAllDay
 
         binding.extraOpener.setOnClickListener {
             openInBrowser(newLocation)
@@ -207,12 +225,21 @@ class ResultScreen : AppCompatActivity() {
         }
     }
 
-    private fun addToCalendar(summary: String, startTimestamp: Long, endTimestamp: Long, location: String, description: String) {
+    private fun addToCalendar(
+        summary: String,
+        startTimestamp: Long,
+        endTimestamp: Long,
+        location: String,
+        description: String,
+    ) {
         val intent = Intent(Intent.ACTION_INSERT)
             .setData(CalendarContract.Events.CONTENT_URI)
             .putExtra(CalendarContract.Events.TITLE, summary)
             .putExtra(CalendarContract.EXTRA_EVENT_BEGIN_TIME, startTimestamp)
-            .putExtra(CalendarContract.EXTRA_EVENT_END_TIME, if (endTimestamp > 0) endTimestamp else startTimestamp + 3600000)
+            .putExtra(
+                CalendarContract.EXTRA_EVENT_END_TIME,
+                if (endTimestamp > 0) endTimestamp else startTimestamp + 3600000
+            )
             .putExtra(CalendarContract.Events.EVENT_LOCATION, location)
             .putExtra(CalendarContract.Events.DESCRIPTION, description)
 
@@ -414,7 +441,12 @@ class ResultScreen : AppCompatActivity() {
         val encryptionType = wifiResult.networkEncryption ?: ""
         binding.typeOfQrIcon.setImageResource(R.drawable.wifi)
 
-        binding.qrResultText.text = getString(R.string.wifi_info_label, ssid, password, encryptionType)
+        binding.qrResultText.text =
+            getString(R.string.wifi_info_label, ssid, password, encryptionType)
+        binding.qrResultText.setTextSize(
+            TypedValue.COMPLEX_UNIT_SP,
+            18f
+        ) // Adjust this size as needed
         binding.btnOpenUrl.visibility = View.GONE
         binding.btnConnect.visibility = View.VISIBLE
         binding.btnCopy.text = getString(R.string.copy_password)
@@ -424,7 +456,8 @@ class ResultScreen : AppCompatActivity() {
 
         binding.btnCopy.setOnClickListener {
             if (password.isEmpty()) {
-                Toast.makeText(this, getString(R.string.no_password_to_copy), Toast.LENGTH_SHORT).show()
+                Toast.makeText(this, getString(R.string.no_password_to_copy), Toast.LENGTH_SHORT)
+                    .show()
             } else {
                 copyToClipboard(password)
             }
@@ -434,14 +467,12 @@ class ResultScreen : AppCompatActivity() {
             shareResult(sharableText)
         }
     }
+
     private fun connectToWifi(ssid: String, password: String) {
         val wifiManager = getSystemService(Context.WIFI_SERVICE) as WifiManager
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-            // Clear all previous suggestions
-            wifiManager.removeNetworkSuggestions(emptyList())
 
-            // Create a new suggestion
             val suggestion = WifiNetworkSuggestion.Builder()
                 .setSsid(ssid)
                 .setWpa2Passphrase(password)
@@ -455,6 +486,7 @@ class ResultScreen : AppCompatActivity() {
                     Toast.makeText(this, "Suggested network: $ssid", Toast.LENGTH_SHORT).show()
                     openWifiSettings()
                 }
+
                 else -> {
                     Toast.makeText(this, "Failed to suggest network", Toast.LENGTH_SHORT).show()
                 }
@@ -482,6 +514,7 @@ class ResultScreen : AppCompatActivity() {
         val intent = Intent(Settings.ACTION_WIFI_SETTINGS)
         startActivity(intent)
     }
+
 
     private fun openInBrowser(url: String) {
         startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(url)))
@@ -524,3 +557,4 @@ class ResultScreen : AppCompatActivity() {
         startActivity(intent)
     }
 }
+

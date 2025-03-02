@@ -1,18 +1,12 @@
 package com.example.qr_code_scanner
 
 import android.Manifest
-import android.content.Context
-import android.content.SharedPreferences
 import android.content.pm.ActivityInfo
 import android.content.pm.PackageManager
-import android.graphics.Matrix
 import android.os.Bundle
 import android.view.MenuItem
-import android.widget.ImageView
-import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.app.ActionBarDrawerToggle
-import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
@@ -21,7 +15,8 @@ import androidx.fragment.app.Fragment
 import com.example.qr_code_scanner.databinding.ActivityMainBinding
 
 class MainActivity : AppCompatActivity() {
-    private lateinit var binding: ActivityMainBinding
+    private var _binding: ActivityMainBinding? = null
+    private val binding get() = _binding!!
     private lateinit var drawerLayout: DrawerLayout
     private lateinit var toggle: ActionBarDrawerToggle
     private val cameraPermissionRequestCode = 101
@@ -32,12 +27,11 @@ class MainActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
 
         requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_PORTRAIT
-        binding = ActivityMainBinding.inflate(layoutInflater)
+        _binding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
         setupDrawer()
         checkCameraPermission()
-        showFirstLaunchDialog()
 
         if (savedInstanceState == null) {
             initializeDefaultFragment()
@@ -46,23 +40,32 @@ class MainActivity : AppCompatActivity() {
         setupNavigationListener()
     }
 
-    private fun showFirstLaunchDialog() {
-        val builder = AlertDialog.Builder(this)
-        val dialogView = layoutInflater.inflate(R.layout.dialog_first_launch, null)
-        builder.setView(dialogView)
-            .setPositiveButton("OK") { dialog, _ -> dialog.dismiss() }
-            .create()
-            .show()
-    }
+
+//    private fun showFirstLaunchDialog() {
+//        val builder = AlertDialog.Builder(this)
+//        val dialogView = layoutInflater.inflate(R.layout.dialog_first_launch, null)
+//        builder.setView(dialogView)
+//            .setPositiveButton("OK") { dialog, _ -> dialog.dismiss() }
+//            .create()
+//            .show()
+//    }
+
     private fun setupDrawer() {
         drawerLayout = binding.drawerLayout
         setSupportActionBar(binding.toolbar)
+
+        // Initialize the ActionBarDrawerToggle to handle the drawer icon
         toggle = ActionBarDrawerToggle(
             this, drawerLayout, binding.toolbar,
             R.string.navigation_drawer_open, R.string.navigation_drawer_close
         )
+
+        // Sync the toggle state
         drawerLayout.addDrawerListener(toggle)
         toggle.syncState()
+
+        // Customize the menu icon color (optional)
+        supportActionBar?.setHomeAsUpIndicator(R.drawable.ic_menu) // Customize the icon if needed
     }
 
     private fun checkCameraPermission() {
@@ -94,7 +97,8 @@ class MainActivity : AppCompatActivity() {
 
             val selectedFragment = when (item.itemId) {
                 R.id.nav_scanner -> {
-                    val currentFragment = supportFragmentManager.findFragmentById(R.id.fragment_container)
+                    val currentFragment =
+                        supportFragmentManager.findFragmentById(R.id.fragment_container)
                     if (currentFragment is CustomScannerFragment) {
                         drawerLayout.closeDrawers()
                         return@setNavigationItemSelectedListener false
@@ -102,8 +106,26 @@ class MainActivity : AppCompatActivity() {
                     CustomScannerFragment()
                 }
 
-                R.id.nav_history -> HistoryFragment()
-                R.id.nav_settings -> SettingsFragment()
+                R.id.nav_history -> {
+                    val currentFragment =
+                        supportFragmentManager.findFragmentById(R.id.fragment_container)
+                    if (currentFragment is HistoryFragment) {
+                        drawerLayout.closeDrawers()
+                        return@setNavigationItemSelectedListener false
+                    }
+                    HistoryFragment()
+                }
+
+                R.id.nav_settings -> {
+                    val currentFragment =
+                        supportFragmentManager.findFragmentById(R.id.fragment_container)
+                    if (currentFragment is SettingsFragment) {
+                        drawerLayout.closeDrawers()
+                        return@setNavigationItemSelectedListener false
+                    }
+                    SettingsFragment()
+                }
+
                 else -> null
             }
 
@@ -118,14 +140,13 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun replaceFragment(fragment: Fragment, addToBackStack: Boolean = true) {
-        val transaction = supportFragmentManager.beginTransaction()
-
-        // Avoid fragment replacement if it's already the active fragment
         val currentFragment = supportFragmentManager.findFragmentById(R.id.fragment_container)
         if (currentFragment != null && currentFragment.javaClass == fragment.javaClass) {
             drawerLayout.closeDrawers()
+            return
         }
 
+        val transaction = supportFragmentManager.beginTransaction()
         transaction.replace(R.id.fragment_container, fragment, fragment::class.java.simpleName)
         transaction.setReorderingAllowed(true)
         if (addToBackStack) transaction.addToBackStack(null)
@@ -138,6 +159,7 @@ class MainActivity : AppCompatActivity() {
         updateNavigationDrawerSelection(fragment)
         toggle.syncState()
     }
+
 
     private fun updateToolbar(fragment: Fragment) {
         setSupportActionBar(binding.toolbar)
@@ -207,6 +229,10 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
+    override fun onDestroy() {
+        super.onDestroy()
+        _binding = null
+    }
 
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
         if (item.itemId == android.R.id.home) {
