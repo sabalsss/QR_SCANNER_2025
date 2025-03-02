@@ -22,6 +22,8 @@
         android:layout_height="wrap_content"
         android:gravity="center"
         android:orientation="horizontal"
+        android:layout_marginStart="10dp"
+        android:layout_marginEnd="10dp"
         app:layout_constraintBottom_toTopOf="@id/barcodeBorderImage"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent">
@@ -29,27 +31,41 @@
         <!-- Flip Camera Button -->
         <com.google.android.material.button.MaterialButton
             android:id="@+id/flip_camera"
-            android:layout_width="100dp"
+            android:layout_width="110dp"
             android:layout_height="100dp"
-            android:layout_marginEnd="15dp"
-            android:backgroundTint="@color/semi_transparent"
+            android:layout_margin="10dp"
+            android:backgroundTint="@color/transparent_color"
             android:drawableTop="@drawable/flip_camera"
             android:padding="10dp"
             android:text="@string/flip_camera"
-            android:textColor="@color/white"
-            app:cornerRadius="10dp" />
+            android:textColor="@color/white" />
 
         <!-- Open Gallery Button -->
         <com.google.android.material.button.MaterialButton
-            android:id="@+id/flashlightIcon"
-            android:layout_width="100dp"
+            android:id="@+id/torch_icon"
+            android:layout_width="110dp"
             android:layout_height="100dp"
-            android:backgroundTint="@color/semi_transparent"
+            android:layout_margin="10dp"
+            android:backgroundTint="@color/transparent_color"
             android:drawableTop="@drawable/flash_light_off"
             android:padding="10dp"
             android:text="@string/Flashlight"
             android:textColor="@color/white"
-            app:cornerRadius="10dp" />
+     />
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/use_image"
+            android:layout_width="110dp"
+            android:layout_height="100dp"
+            android:layout_margin="10dp"
+            android:backgroundTint="@color/transparent_color"
+            android:drawableTop="@drawable/open_gallery"
+            android:padding="10dp"
+            android:text="@string/open_gallery"
+            android:textColor="@color/white"
+
+            />
+
     </LinearLayout>
 
     <ImageView
@@ -94,7 +110,7 @@
         android:id="@+id/zoom_seekbar"
         android:layout_width="300dp"
         android:layout_height="wrap_content"
-        android:layout_marginBottom="50dp"
+        android:layout_marginBottom="100dp"
         android:contentDescription="@string/zoom_progress"
         android:max="100"
         android:progress="0"
@@ -104,21 +120,5 @@
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent" />
 
-    <com.google.android.material.button.MaterialButton
-        android:id="@+id/open_gallery"
-        android:layout_width="110dp"
-        android:layout_height="100dp"
-        android:layout_marginTop="20dp"
-        android:layout_marginBottom="50dp"
-        android:backgroundTint="@color/semi_transparent"
-        android:drawableTop="@drawable/open_gallery"
-        android:textColor="@color/white"
-        android:text="@string/open_gallery"
-        app:cornerRadius="10dp"
-        app:iconGravity="textStart"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/barcodeBorderImage"
-        app:layout_constraintBottom_toTopOf="@id/zoom_seekbar" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>

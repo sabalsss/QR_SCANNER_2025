@@ -76,7 +76,7 @@ class CustomScannerFragment : Fragment() {
 
         topRectBarcodeView = binding.zxingBarcodeScanner.findViewById(R.id.zxing_barcode_surface)
         initializeQrScanner(savedInstanceState)
-        binding.flashlightIcon.setOnClickListener { toggleFlashlight() }
+        binding.torchIcon.setOnClickListener { toggleFlashlight() }
         binding.flipCamera.setOnClickListener {
             if (isFrontCameraAvailable()) {
                 flipCameraInBackground()
@@ -85,7 +85,7 @@ class CustomScannerFragment : Fragment() {
                     .show()
             }
         }
-        binding.openGallery.setOnClickListener { openImagePicker() }
+        binding.useImage.setOnClickListener { openImagePicker() }
     }
 
     private fun isFrontCameraAvailable(): Boolean {
@@ -97,7 +97,7 @@ class CustomScannerFragment : Fragment() {
     private fun checkFlash() {
         val context = context ?: return
         if (!isFlashlightAvailable()) {
-            binding.flashlightIcon.visibility = View.GONE
+            binding.useImage.visibility = View.GONE
             Toast.makeText(
                 context,
                 "Flashlight not available on this device",
@@ -181,11 +181,11 @@ class CustomScannerFragment : Fragment() {
 
                     // Control flashlight behavior for front camera
                     if (isFrontCamera) {
-                        binding.flashlightIcon.alpha = 0.3f
-                        binding.flashlightIcon.isClickable = false
+                        binding.torchIcon.alpha = 0.3f
+                        binding.torchIcon.isClickable = false
                     } else {
-                        binding.flashlightIcon.alpha = 1f
-                        binding.flashlightIcon.isClickable = true
+                        binding.torchIcon.alpha = 1f
+                        binding.torchIcon.isClickable = true
                     }
                 }
             } catch (e: Exception) {
@@ -203,11 +203,11 @@ class CustomScannerFragment : Fragment() {
 
         if (flashlightState) {
             binding.zxingBarcodeScanner.setTorchOff()
-            binding.flashlightIcon.setIconResource(R.drawable.flash_light_off)
+            binding.torchIcon.setIconResource(R.drawable.flash_light_off)
             flashlightState = false
         } else {
             binding.zxingBarcodeScanner.setTorchOn()
-            binding.flashlightIcon.setIconResource(R.drawable.flash_light)
+            binding.torchIcon.setIconResource(R.drawable.flash_light)
             flashlightState = true
         }
     }
@@ -249,7 +249,7 @@ class CustomScannerFragment : Fragment() {
 
                 viewLifecycleOwner.lifecycleScope.launch(Dispatchers.Main) {
                     saveResultToDatabase(scanType, scanResult)
-                    navigateToResultScreenScan(scanResult, scanType)
+//                    navigateToResultScreenScan(scanResult, scanType)
                     if (beepAfterScan) beepManager?.playBeepSound()
                     if (vibrateAfterScan) vibrateDevice()
                 }
