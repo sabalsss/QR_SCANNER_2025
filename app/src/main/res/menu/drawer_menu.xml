@@ -4,22 +4,22 @@
 
     <item
         android:id="@+id/nav_scanner"
-        android:title="@string/scanner_name"
-        android:icon="@drawable/scanner_frame_toolbar"
         android:checkable="true"
+        android:icon="@drawable/scanner_frame_toolbar"
+        android:title="@string/scanner_fragment"
         app:showAsAction="ifRoom" />
 
-        <item
-            android:id="@+id/nav_history"
-            android:title="@string/History"
-            android:icon="@drawable/history_icon"
-            android:checkable="true"
-            app:showAsAction="ifRoom" />
+    <item
+        android:id="@+id/nav_history"
+        android:checkable="true"
+        android:icon="@drawable/history_icon"
+        android:title="@string/History"
+        app:showAsAction="ifRoom" />
 
     <item
         android:id="@+id/nav_settings"
-        android:title="@string/settings_title"
-        android:icon="@drawable/settings_icon"
         android:checkable="true"
+        android:icon="@drawable/settings_icon"
+        android:title="@string/settings_title"
         app:showAsAction="ifRoom" />
 </menu>

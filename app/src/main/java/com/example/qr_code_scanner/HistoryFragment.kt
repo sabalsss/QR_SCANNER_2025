@@ -1,6 +1,5 @@
 package com.example.qr_code_scanner
 
-import android.content.Intent
 import android.os.Bundle
 import android.view.*
 import androidx.appcompat.app.AlertDialog
@@ -67,19 +66,23 @@ class HistoryFragment : Fragment() {
             try {
                 val dao = QRDatabase.getDatabase(requireContext().applicationContext).qrHistoryDao()
                 dao.deleteItem(item.id)
+
                 withContext(Dispatchers.Main) {
-                    adapter.refresh() // Refresh the adapter to update the UI
+                    adapter.notifyItemRemoved(adapter.snapshot().indexOf(item))
                 }
             } catch (e: Exception) {
-                e.printStackTrace()
                 withContext(Dispatchers.Main) {
-                    AlertDialog.Builder(requireContext())
-                        .setMessage("Failed to delete item: ${e.message}")
-                        .setPositiveButton(android.R.string.ok, null)
-                        .show()
+                    showErrorDialog("Failed to delete item: ${e.message}")
                 }
             }
         }
+    }
+
+    private fun showErrorDialog(message: String) {
+        AlertDialog.Builder(requireContext())
+            .setMessage(message)
+            .setPositiveButton(android.R.string.ok, null)
+            .show()
     }
 
     private fun observePagedData() {
@@ -115,14 +118,21 @@ class HistoryFragment : Fragment() {
     }
 
     private fun openResultScreen(item: QRHistory) {
-        val intent = Intent(requireContext(), ResultScreen::class.java).apply {
-            putExtra("SCAN_RESULT", item.result)
-            putExtra("SCAN_TYPE", item.type)
-            putExtra("SCAN_TIME", item.timestamp)
-            putExtra("FROM_HISTORY", true)
-            putExtra("IMAGE_URI", item.imageUri)
+        // Create a new instance of ResultFragment
+        val resultFragment = ResultFragment().apply {
+            arguments = Bundle().apply {
+                putString("SCAN_RESULT", item.result)
+                putString("SCAN_TYPE", item.type)
+                putString("SCAN_TIME", item.timestamp)
+                putString("IMAGE_URI", item.imageUri)
+            }
         }
-        startActivity(intent)
+
+        // Use FragmentTransaction to replace the current fragment with ResultFragment
+        parentFragmentManager.beginTransaction()
+            .replace(R.id.fragment_container, resultFragment) // Replace `fragment_container` with your container ID
+            .addToBackStack(null) // Add to back stack so the user can navigate back
+            .commit()
     }
 
     private fun enterMultiSelectMode(item: QRHistory) {

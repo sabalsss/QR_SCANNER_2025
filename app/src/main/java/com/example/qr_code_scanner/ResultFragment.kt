@@ -17,73 +17,43 @@ import android.text.TextUtils
 import android.text.util.Linkify
 import android.util.Log
 import android.util.TypedValue
+import android.view.LayoutInflater
 import android.view.View
+import android.view.ViewGroup
 import android.widget.Button
 import android.widget.Toast
-import androidx.activity.OnBackPressedCallback
-import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
+import androidx.fragment.app.Fragment
 import com.bumptech.glide.Glide
 import com.bumptech.glide.load.engine.DiskCacheStrategy
-import com.example.qr_code_scanner.databinding.ActivityResultScreenBinding
+import com.example.qr_code_scanner.databinding.FragmentResultBinding
 import com.google.zxing.Result
-import com.google.zxing.client.result.AddressBookParsedResult
-import com.google.zxing.client.result.CalendarParsedResult
-import com.google.zxing.client.result.EmailAddressParsedResult
-import com.google.zxing.client.result.GeoParsedResult
-import com.google.zxing.client.result.ISBNParsedResult
-import com.google.zxing.client.result.ParsedResult
-import com.google.zxing.client.result.ParsedResultType
-import com.google.zxing.client.result.ProductParsedResult
-import com.google.zxing.client.result.ResultParser
-import com.google.zxing.client.result.SMSParsedResult
-import com.google.zxing.client.result.TelParsedResult
-import com.google.zxing.client.result.VINParsedResult
-import com.google.zxing.client.result.WifiParsedResult
+import com.google.zxing.client.result.*
 import java.io.File
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
 
-class ResultScreen : AppCompatActivity() {
-    private lateinit var binding: ActivityResultScreenBinding
+class ResultFragment : Fragment() {
+    private var _binding: FragmentResultBinding? = null
+    private val binding get() = _binding!!
 
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
-        binding = ActivityResultScreenBinding.inflate(layoutInflater)
-        setContentView(binding.root)
-        setSupportActionBar(binding.toolbar)
-        supportActionBar?.apply {
-            setDisplayHomeAsUpEnabled(true)
-            setDisplayShowHomeEnabled(true)
-            title = getString(R.string.result_screen)
-            window.statusBarColor = ContextCompat.getColor(applicationContext, R.color.border_color)
-            window.decorView.systemUiVisibility = 0
-        }
+    override fun onCreateView(
+        inflater: LayoutInflater, container: ViewGroup?,
+        savedInstanceState: Bundle?
+    ): View? {
+        _binding = FragmentResultBinding.inflate(inflater, container, false)
+        return binding.root
+    }
 
-        onBackPressedDispatcher.addCallback(this, object : OnBackPressedCallback(true) {
-            override fun handleOnBackPressed() {
-                val fromScanner = intent.getBooleanExtra("FROM_SCANNER", false)
-                if (fromScanner) {
-                    finish()
-                } else {
-                    if (isEnabled) {
-                        isEnabled = false
-                        onBackPressedDispatcher.onBackPressed()
-                    }
-                }
-            }
-        })
+    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        super.onViewCreated(view, savedInstanceState)
 
-        binding.toolbar.setNavigationOnClickListener { onBackPressed() }
-        binding.toolbar.navigationIcon?.setTint(resources.getColor(R.color.white, theme))
+        val scanResultString = arguments?.getString("SCAN_RESULT") ?: getString(R.string.no_result_found)
+        val scanType = arguments?.getString("SCAN_TYPE") ?: "Unknown Type"
+        val scannedTime = arguments?.getString("SCAN_TIME") ?: getCurrentTimestamp()
+        val imageUriString = arguments?.getString("IMAGE_URI")
 
-        binding.toolbar.title = getString(R.string.result_screen)
-        val scanResultString =
-            intent.getStringExtra("SCAN_RESULT") ?: getString(R.string.no_result_found)
-        val scanType = intent.getStringExtra("SCAN_TYPE") ?: "Unknown Type"
-        val scannedTime = intent.getStringExtra("SCAN_TIME") ?: getCurrentTimestamp()
-        val imageUriString = intent.getStringExtra("IMAGE_URI")
         binding.qrResultText.text = scanResultString
         binding.customToolbarTitle.text = scanType
         binding.timestampText.text = getString(R.string.scanned_time, scannedTime)
@@ -102,7 +72,6 @@ class ResultScreen : AppCompatActivity() {
             if (imageFile.exists()) {
                 binding.qrResultImageContainer.visibility = View.VISIBLE
 
-                // Load the compressed image
                 Glide.with(this)
                     .load(imageFile)
                     .placeholder(R.mipmap.ic_launcher_round)
@@ -110,12 +79,12 @@ class ResultScreen : AppCompatActivity() {
                     .error(R.drawable.error_24px)
                     .into(binding.qrResultImage)
             } else {
-                Log.e("ResultScreen", "Image file not found: $imagePath")
+                Log.e("ResultFragment", "Image file not found: $imagePath")
                 binding.qrResultImageContainer.visibility = View.GONE
             }
         } else {
             binding.qrResultImageContainer.visibility = View.GONE
-            Log.e("ResultScreen", "No IMAGE_PATH provided or found")
+            Log.e("ResultFragment", "No IMAGE_PATH provided or found")
         }
     }
 
@@ -128,18 +97,18 @@ class ResultScreen : AppCompatActivity() {
         val parsedResult: ParsedResult = ResultParser.parseResult(result)
 
         if (parsedResult.displayResult.isNullOrEmpty()) {
-            binding.toolbar.title = getString(R.string.no_result_found)
+            binding.customToolbarTitle.text = getString(R.string.no_result_found)
             binding.qrResultText.text = getString(R.string.no_content_found)
             return
         }
 
         binding.qrResultText.text = parsedResult.displayResult
         binding.customToolbarTitle.text = parsedResult.type.toString()
-        val linkColor = ContextCompat.getColor(this, R.color.black)
+        val linkColor = ContextCompat.getColor(requireContext(), R.color.black)
         Linkify.addLinks(binding.qrResultText, Linkify.ALL)
         binding.qrResultText.setLinkTextColor(linkColor)
 
-        val sharedPreferences = getSharedPreferences("ScannerSettings", Context.MODE_PRIVATE)
+        val sharedPreferences = requireContext().getSharedPreferences("ScannerSettings", Context.MODE_PRIVATE)
         val autoCopyToClipboard = sharedPreferences.getBoolean("AutoCopyToClipboard", false)
         val autoConnectWifi = sharedPreferences.getBoolean("AutoWifi", false)
         if (autoCopyToClipboard) {
@@ -159,7 +128,6 @@ class ResultScreen : AppCompatActivity() {
                     connectToWifi(parsedResult.ssid, parsedResult.password)
                 }
             }
-
             ParsedResultType.PRODUCT -> setupForProduct(parsedResult as ProductParsedResult)
             ParsedResultType.CALENDAR -> setupForCalendar(parsedResult as CalendarParsedResult)
             ParsedResultType.VIN -> setupForVIN(parsedResult as VINParsedResult)
@@ -176,7 +144,6 @@ class ResultScreen : AppCompatActivity() {
             }
         }
     }
-
 
     private fun setupForISBN(isbnParsedResult: ISBNParsedResult) {
         binding.customToolbarTitle.text = getString(R.string.ISBN)
@@ -243,10 +210,10 @@ class ResultScreen : AppCompatActivity() {
             .putExtra(CalendarContract.Events.EVENT_LOCATION, location)
             .putExtra(CalendarContract.Events.DESCRIPTION, description)
 
-        if (intent.resolveActivity(packageManager) != null) {
+        if (intent.resolveActivity(requireActivity().packageManager) != null) {
             startActivity(intent)
         } else {
-            Toast.makeText(this, "No calendar app found to add event", Toast.LENGTH_SHORT).show()
+            Toast.makeText(requireContext(), "No calendar app found to add event", Toast.LENGTH_SHORT).show()
         }
     }
 
@@ -278,10 +245,10 @@ class ResultScreen : AppCompatActivity() {
     }
 
     private fun copyToClipboard(text: String) {
-        val clipboard = getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
+        val clipboard = requireContext().getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
         val clip = ClipData.newPlainText("QR Result", text)
         clipboard.setPrimaryClip(clip)
-        Toast.makeText(this, getString(R.string.copied_to_clipboard), Toast.LENGTH_SHORT).show()
+        Toast.makeText(requireContext(), getString(R.string.copied_to_clipboard), Toast.LENGTH_SHORT).show()
     }
 
     private fun shareResult(text: String) {
@@ -386,7 +353,7 @@ class ResultScreen : AppCompatActivity() {
             if (number.isNotEmpty()) {
                 callPhone(number)
             } else {
-                Toast.makeText(this, "Invalid phone number", Toast.LENGTH_SHORT).show()
+                Toast.makeText(requireContext(), "Invalid phone number", Toast.LENGTH_SHORT).show()
             }
         }
 
@@ -397,7 +364,7 @@ class ResultScreen : AppCompatActivity() {
             if (number.isNotEmpty()) {
                 sendSms(number, body)
             } else {
-                Toast.makeText(this, "Invalid recipient number", Toast.LENGTH_SHORT).show()
+                Toast.makeText(requireContext(), "Invalid recipient number", Toast.LENGTH_SHORT).show()
             }
         }
 
@@ -456,7 +423,7 @@ class ResultScreen : AppCompatActivity() {
 
         binding.btnCopy.setOnClickListener {
             if (password.isEmpty()) {
-                Toast.makeText(this, getString(R.string.no_password_to_copy), Toast.LENGTH_SHORT)
+                Toast.makeText(requireContext(), getString(R.string.no_password_to_copy), Toast.LENGTH_SHORT)
                     .show()
             } else {
                 copyToClipboard(password)
@@ -469,7 +436,7 @@ class ResultScreen : AppCompatActivity() {
     }
 
     private fun connectToWifi(ssid: String, password: String) {
-        val wifiManager = getSystemService(Context.WIFI_SERVICE) as WifiManager
+        val wifiManager = requireContext().getSystemService(Context.WIFI_SERVICE) as WifiManager
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
 
@@ -483,12 +450,12 @@ class ResultScreen : AppCompatActivity() {
             val status = wifiManager.addNetworkSuggestions(listOf(suggestion))
             when (status) {
                 WifiManager.STATUS_NETWORK_SUGGESTIONS_SUCCESS -> {
-                    Toast.makeText(this, "Suggested network: $ssid", Toast.LENGTH_SHORT).show()
+                    Toast.makeText(requireContext(), getString(R.string.wifi_suggestion_success,ssid), Toast.LENGTH_SHORT).show()
                     openWifiSettings()
                 }
 
                 else -> {
-                    Toast.makeText(this, "Failed to suggest network", Toast.LENGTH_SHORT).show()
+                    Toast.makeText(requireContext(), getString(R.string.wifi_connection_failed), Toast.LENGTH_SHORT).show()
                 }
             }
         } else {
@@ -502,10 +469,10 @@ class ResultScreen : AppCompatActivity() {
             if (networkId != -1) {
                 wifiManager.enableNetwork(networkId, true)
                 wifiManager.reconnect()
-                Toast.makeText(this, "Connected to $ssid", Toast.LENGTH_SHORT).show()
+                Toast.makeText(requireContext(), getString(R.string.wifi_suggestion_success,ssid), Toast.LENGTH_SHORT).show()
                 openWifiSettings()
             } else {
-                Toast.makeText(this, "Failed to connect to $ssid", Toast.LENGTH_SHORT).show()
+                Toast.makeText(requireContext(), getString(R.string.wifi_connection_failed), Toast.LENGTH_SHORT).show()
             }
         }
     }
@@ -514,7 +481,6 @@ class ResultScreen : AppCompatActivity() {
         val intent = Intent(Settings.ACTION_WIFI_SETTINGS)
         startActivity(intent)
     }
-
 
     private fun openInBrowser(url: String) {
         startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(url)))
@@ -532,17 +498,17 @@ class ResultScreen : AppCompatActivity() {
             data = Uri.parse(number)
             body?.let { putExtra("sms_body", it) }
         }
-        if (intent.resolveActivity(packageManager) != null) {
+        if (intent.resolveActivity(requireActivity().packageManager) != null) {
             startActivity(intent)
         } else {
-            Toast.makeText(this, "No SMS app found to send SMS", Toast.LENGTH_SHORT).show()
+            Toast.makeText(requireContext(), "No SMS app found to send SMS", Toast.LENGTH_SHORT).show()
         }
     }
 
     private fun callPhone(phone: String) {
         val cleanNumber = phone.replace(Regex("[^\\d+]"), "")
         if (cleanNumber.isEmpty()) {
-            Toast.makeText(this, "Invalid phone number", Toast.LENGTH_SHORT).show()
+            Toast.makeText(requireContext(), "Invalid phone number", Toast.LENGTH_SHORT).show()
             return
         }
 
@@ -556,5 +522,9 @@ class ResultScreen : AppCompatActivity() {
         val intent = Intent(Intent.ACTION_VIEW, Uri.parse("geo:$latitude,$longitude"))
         startActivity(intent)
     }
-}
 
+    override fun onDestroyView() {
+        super.onDestroyView()
+        _binding = null
+    }
+}

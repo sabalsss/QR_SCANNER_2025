@@ -5,11 +5,10 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:background="@color/card_background">
 
-<!--    fragment_history.xml-->
     <!-- RecyclerView for the history -->
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/historyRecyclerView"
-        android:layout_width="match_parent"
+        android:layout_width="0dp"
         android:layout_height="0dp"
         tools:listitem="@layout/item_layout"
         app:layout_constraintTop_toTopOf="parent"
@@ -17,32 +16,34 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent" />
 
+    <!-- ProgressBar -->
     <ProgressBar
         android:id="@+id/progressBar"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent"
         android:layout_marginTop="10dp"
         android:visibility="gone"
-        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
-    />
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintBottom_toBottomOf="parent" />
 
+    <!-- Lottie Animation View -->
     <com.airbnb.lottie.LottieAnimationView
         android:id="@+id/noHistoryAnimation"
         android:layout_width="250dp"
         android:layout_height="250dp"
         app:lottie_rawRes="@raw/empty_state_animation"
         app:lottie_autoPlay="true"
-        android:layout_marginTop="150dp"
         app:lottie_renderMode="automatic"
         app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintBottom_toTopOf="@id/noHistoryTextView"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintBottom_toTopOf="@id/noHistoryTextView"
+        android:layout_marginTop="150dp"
         android:visibility="gone" />
 
+    <!-- No History Text -->
     <TextView
         android:id="@+id/noHistoryTextView"
         android:layout_width="wrap_content"
@@ -57,6 +58,4 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         android:visibility="gone" />
-
-
 </androidx.constraintlayout.widget.ConstraintLayout>

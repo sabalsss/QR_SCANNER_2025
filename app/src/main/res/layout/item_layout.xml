@@ -3,17 +3,16 @@
     android:id="@+id/cardview"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:layout_margin="10dp"
+    android:layout_margin="3dp"
     app:cardBackgroundColor="@color/card_background"
-    app:cardCornerRadius="10dp"
-    app:cardElevation="10dp">
+    app:cardCornerRadius="8dp"
+    app:cardElevation="30dp">
 
     <!--    item_layout.xml-->
     <RelativeLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:padding="8dp"
-        >
+        android:padding="8dp">
 
         <!-- Image Icon -->
         <ImageView
@@ -55,9 +54,9 @@
                 android:layout_marginTop="8dp"
                 android:ellipsize="end"
                 android:maxLines="3"
-                android:textSize="18sp"
                 android:text="@string/no_qr_scanned"
-                android:textColor="@color/white" />
+                android:textColor="@color/white"
+                android:textSize="18sp" />
 
             <!-- Timestamp -->
             <TextView
@@ -68,8 +67,7 @@
                 android:maxLines="1"
                 android:text="@string/scanned_time"
                 android:textColor="@color/gray_light"
-                android:textSize="16sp"
-                 />
+                android:textSize="16sp" />
         </LinearLayout>
 
         <!-- Tick Icon -->

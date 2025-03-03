@@ -3,6 +3,7 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent">
 
+    <!-- Barcode Scanner View -->
     <com.journeyapps.barcodescanner.DecoratedBarcodeView
         android:id="@+id/zxing_barcode_scanner"
         android:layout_width="0dp"
@@ -20,12 +21,13 @@
         android:id="@+id/top_buttons_container"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
+        android:layout_marginTop="20dp"
+        android:layout_marginBottom="20dp"
         android:gravity="center"
         android:orientation="horizontal"
-        android:layout_marginStart="10dp"
-        android:layout_marginEnd="10dp"
         app:layout_constraintBottom_toTopOf="@id/barcodeBorderImage"
         app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.5"
         app:layout_constraintStart_toStartOf="parent">
 
         <!-- Flip Camera Button -->
@@ -36,11 +38,13 @@
             android:layout_margin="10dp"
             android:backgroundTint="@color/transparent_color"
             android:drawableTop="@drawable/flip_camera"
+            android:gravity="center"
             android:padding="10dp"
             android:text="@string/flip_camera"
-            android:textColor="@color/white" />
+            android:textColor="@color/white"
+            android:drawablePadding="8dp" />
 
-        <!-- Open Gallery Button -->
+        <!-- Torch Icon Button -->
         <com.google.android.material.button.MaterialButton
             android:id="@+id/torch_icon"
             android:layout_width="110dp"
@@ -48,11 +52,13 @@
             android:layout_margin="10dp"
             android:backgroundTint="@color/transparent_color"
             android:drawableTop="@drawable/flash_light_off"
+            android:gravity="center"
             android:padding="10dp"
-            android:text="@string/Flashlight"
+            android:text="@string/flip_camera"
             android:textColor="@color/white"
-     />
+            android:drawablePadding="8dp" />
 
+        <!-- Use Image Button -->
         <com.google.android.material.button.MaterialButton
             android:id="@+id/use_image"
             android:layout_width="110dp"
@@ -60,34 +66,38 @@
             android:layout_margin="10dp"
             android:backgroundTint="@color/transparent_color"
             android:drawableTop="@drawable/open_gallery"
+            android:gravity="center"
             android:padding="10dp"
             android:text="@string/open_gallery"
             android:textColor="@color/white"
-
-            />
-
+            android:drawablePadding="8dp" />
     </LinearLayout>
 
+    <!-- Barcode Border Image -->
     <ImageView
         android:id="@+id/barcodeBorderImage"
         android:layout_width="0dp"
         android:layout_height="0dp"
-        android:layout_marginBottom="60dp"
+        android:layout_marginStart="50dp"
+        android:layout_marginTop="50dp"
+        android:layout_marginEnd="50dp"
+        android:layout_marginBottom="50dp"
         android:contentDescription="@string/app_name"
         android:src="@drawable/scanner_frame"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHeight_percent="0.5"
+        app:layout_constraintHeight_percent="0.4"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintWidth_percent="0.8" />
+        app:layout_constraintWidth_percent="0.7" />
 
+    <!-- Horizontal Line 1 -->
     <ImageView
         android:id="@+id/line1"
-        android:layout_width="250dp"
-        android:layout_height="2dp"
+        android:layout_width="200dp"
+        android:layout_height="3dp"
         android:background="@color/scanner_line_start"
-        android:contentDescription="@string/scanner_name"
+        android:contentDescription="@string/app_name"
         app:layout_constraintBottom_toBottomOf="@id/barcodeBorderImage"
         app:layout_constraintEnd_toEndOf="@id/barcodeBorderImage"
         app:layout_constraintStart_toStartOf="@id/barcodeBorderImage"
@@ -97,19 +107,24 @@
     <!-- Horizontal Line 2 -->
     <ImageView
         android:id="@+id/line2"
-        android:layout_width="250dp"
-        android:layout_height="2dp"
+        android:layout_width="200dp"
+        android:layout_height="3dp"
         android:layout_marginTop="10dp"
         android:background="@color/scanner_line_start"
-        android:contentDescription="@string/scanner_name"
+        android:contentDescription="@string/app_name"
         app:layout_constraintEnd_toEndOf="@id/barcodeBorderImage"
         app:layout_constraintStart_toStartOf="@id/barcodeBorderImage"
-        app:layout_constraintTop_toBottomOf="@id/line1" />
+        app:layout_constraintTop_toBottomOf="@id/line1"
 
+        />
+
+    <!-- Zoom SeekBar -->
     <SeekBar
         android:id="@+id/zoom_seekbar"
-        android:layout_width="300dp"
+        android:layout_width="0dp"
         android:layout_height="wrap_content"
+        android:layout_marginStart="50dp"
+        android:layout_marginEnd="50dp"
         android:layout_marginBottom="100dp"
         android:contentDescription="@string/zoom_progress"
         android:max="100"
@@ -119,6 +134,5 @@
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent" />
-
 
 </androidx.constraintlayout.widget.ConstraintLayout>

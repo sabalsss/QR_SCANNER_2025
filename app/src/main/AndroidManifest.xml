@@ -27,12 +27,6 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-        <activity
-            android:name=".ResultScreen"
-            android:exported="true"
-            android:parentActivityName=".MainActivity"
-            android:theme="@style/Base.Theme.QR_CODE_SCANNER" />
-
         <provider
             android:name="androidx.core.content.FileProvider"
             android:authorities="${applicationId}.fileprovider"

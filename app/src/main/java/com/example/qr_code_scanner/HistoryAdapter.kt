@@ -23,7 +23,7 @@ class HistoryAdapter(
 ) : PagingDataAdapter<QRHistory, HistoryAdapter.HistoryViewHolder>(DIFF_CALLBACK) {
     private var isMultiSelectMode = false
     private val selectedItems = mutableSetOf<QRHistory>()
-    val folderName = "QR Barcode Scanner" // Folder name in Downloads
+    val folderName = "QR Barcode Scanner"
 
     companion object {
         private val DIFF_CALLBACK = object : DiffUtil.ItemCallback<QRHistory>() {
@@ -75,7 +75,7 @@ class HistoryAdapter(
                         isMultiSelectMode = true
                         selectedItems.add(item)
                         onLongClick(item)
-                        notifyDataSetChanged() // Update UI
+                        notifyItemChanged(position)
                     } else {
                         toggleSelection(item)
                     }
@@ -158,7 +158,10 @@ class HistoryAdapter(
                         field.isAccessible = true
                         val menuPopupHelper = field.get(popupMenu)
                         val classPopupHelper = Class.forName(menuPopupHelper.javaClass.name)
-                        val setForceIcons = classPopupHelper.getDeclaredMethod("setForceShowIcon", Boolean::class.java)
+                        val setForceIcons = classPopupHelper.getDeclaredMethod(
+                            "setForceShowIcon",
+                            Boolean::class.java
+                        )
                         setForceIcons.invoke(menuPopupHelper, true)
                         break
                     }
@@ -181,9 +184,13 @@ class HistoryAdapter(
             }
             popupMenu.show()
         }
+
         private fun saveAsText(item: QRHistory) {
             val fileName = "QR_History_${item.id}.txt"
-            val appFolder = File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS), folderName)
+            val appFolder = File(
+                Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS),
+                folderName
+            )
             if (!appFolder.exists()) appFolder.mkdirs()
 
             val file = File(appFolder, fileName)
@@ -192,7 +199,11 @@ class HistoryAdapter(
                     writer.append("QR Code Result:\n${item.result}\n")
                     writer.append("Scanned Time: ${item.timestamp}\n")
                 }
-                Toast.makeText(binding.root.context, "Saved to $folderName as $fileName", Toast.LENGTH_SHORT).show()
+                Toast.makeText(
+                    binding.root.context,
+                    "Saved to $folderName as $fileName",
+                    Toast.LENGTH_SHORT
+                ).show()
             } catch (e: Exception) {
                 Toast.makeText(binding.root.context, "Error saving TXT", Toast.LENGTH_SHORT).show()
                 e.printStackTrace()
