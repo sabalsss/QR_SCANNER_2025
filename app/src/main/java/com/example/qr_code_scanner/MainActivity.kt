@@ -89,7 +89,6 @@ class MainActivity : AppCompatActivity() {
         )
         binding.navigationView.setCheckedItem(R.id.nav_scanner)
     }
-
     private fun setupNavigationListener() {
         binding.navigationView.setNavigationItemSelectedListener { item ->
             if (System.currentTimeMillis() - lastClickTime < clickTime) return@setNavigationItemSelectedListener false
@@ -97,8 +96,7 @@ class MainActivity : AppCompatActivity() {
 
             val selectedFragment = when (item.itemId) {
                 R.id.nav_scanner -> {
-                    val currentFragment =
-                        supportFragmentManager.findFragmentById(R.id.fragment_container)
+                    val currentFragment = supportFragmentManager.findFragmentById(R.id.fragment_container)
                     if (currentFragment is CustomScannerFragment) {
                         drawerLayout.closeDrawers()
                         return@setNavigationItemSelectedListener false
@@ -107,8 +105,7 @@ class MainActivity : AppCompatActivity() {
                 }
 
                 R.id.nav_history -> {
-                    val currentFragment =
-                        supportFragmentManager.findFragmentById(R.id.fragment_container)
+                    val currentFragment = supportFragmentManager.findFragmentById(R.id.fragment_container)
                     if (currentFragment is HistoryFragment) {
                         drawerLayout.closeDrawers()
                         return@setNavigationItemSelectedListener false
@@ -117,8 +114,7 @@ class MainActivity : AppCompatActivity() {
                 }
 
                 R.id.nav_settings -> {
-                    val currentFragment =
-                        supportFragmentManager.findFragmentById(R.id.fragment_container)
+                    val currentFragment = supportFragmentManager.findFragmentById(R.id.fragment_container)
                     if (currentFragment is SettingsFragment) {
                         drawerLayout.closeDrawers()
                         return@setNavigationItemSelectedListener false
@@ -145,11 +141,15 @@ class MainActivity : AppCompatActivity() {
             drawerLayout.closeDrawers()
             return
         }
-
         val transaction = supportFragmentManager.beginTransaction()
         transaction.replace(R.id.fragment_container, fragment, fragment::class.java.simpleName)
         transaction.setReorderingAllowed(true)
-        if (addToBackStack) transaction.addToBackStack(null)
+
+        // Only add to back stack if it's not a direct navigation to ScannerFragment
+        if (addToBackStack && !(fragment is CustomScannerFragment && (currentFragment is HistoryFragment || currentFragment is SettingsFragment))) {
+            transaction.addToBackStack(null)
+        }
+
         transaction.commit()
 
         // Close the drawer immediately after the fragment is replaced
@@ -216,16 +216,20 @@ class MainActivity : AppCompatActivity() {
     override fun onBackPressed() {
         val currentFragment = supportFragmentManager.findFragmentById(R.id.fragment_container)
 
-        if (currentFragment is HistoryFragment) {
-            if (currentFragment.isMultiSelectMode) {
-                currentFragment.exitMultiSelectMode() // Exit selection mode first
-                return
+        when (currentFragment) {
+            is HistoryFragment -> {
+                if (currentFragment.isMultiSelectMode) {
+                    currentFragment.exitMultiSelectMode() // Exit selection mode first
+                    return
+                }
+                replaceFragment(CustomScannerFragment(), addToBackStack = false)
             }
-            replaceFragment(CustomScannerFragment(), addToBackStack = false)
-        } else if (currentFragment is SettingsFragment) {
-            replaceFragment(HistoryFragment(), addToBackStack = false)
-        } else {
-            super.onBackPressed()
+            is SettingsFragment -> {
+                replaceFragment(CustomScannerFragment(), addToBackStack = false)
+            }
+            else -> {
+                super.onBackPressed()
+            }
         }
     }
 

@@ -3,10 +3,10 @@
     android:id="@+id/cardview"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:layout_margin="3dp"
+    android:layout_margin="4dp"
     app:cardBackgroundColor="@color/card_background"
     app:cardCornerRadius="8dp"
-    app:cardElevation="30dp">
+    app:cardElevation="20dp">
 
     <!--    item_layout.xml-->
     <RelativeLayout

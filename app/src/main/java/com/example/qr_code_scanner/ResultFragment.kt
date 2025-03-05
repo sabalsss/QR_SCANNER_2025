@@ -57,7 +57,6 @@ class ResultFragment : Fragment() {
         binding.qrResultText.text = scanResultString
         binding.customToolbarTitle.text = scanType
         binding.timestampText.text = getString(R.string.scanned_time, scannedTime)
-
         setResultImage(imageUriString)
 
         if (scanResultString != getString(R.string.no_result_found)) {
@@ -71,12 +70,12 @@ class ResultFragment : Fragment() {
             val imageFile = File(imagePath)
             if (imageFile.exists()) {
                 binding.qrResultImageContainer.visibility = View.VISIBLE
-
                 Glide.with(this)
                     .load(imageFile)
                     .placeholder(R.mipmap.ic_launcher_round)
                     .diskCacheStrategy(DiskCacheStrategy.ALL)
                     .error(R.drawable.error_24px)
+                    .override(250, 250) // Resize the image to fit within 250x250 pixels
                     .into(binding.qrResultImage)
             } else {
                 Log.e("ResultFragment", "Image file not found: $imagePath")
@@ -293,26 +292,10 @@ class ResultFragment : Fragment() {
     private fun setupForUrl(url: String) {
         binding.btnOpenUrl.visibility = Button.VISIBLE
         binding.btnOpenUrl.text = getString(R.string.open_browser)
-        binding.btnOpenUrl.setIconResource(R.drawable.web)
-
-        val domain = try {
-            var formattedUrl = url.trim()
-            if (formattedUrl.startsWith("http://")) {
-                formattedUrl = formattedUrl.removePrefix("http://")
-            } else if (formattedUrl.startsWith("https://")) {
-                formattedUrl = formattedUrl.removePrefix("https://")
-            }
-            if (formattedUrl.startsWith("www.")) {
-                formattedUrl = formattedUrl.removePrefix("www.")
-            }
-            formattedUrl.split("/")[0]
-        } catch (e: Exception) {
-            getString(R.string.URL)
-        }
-
-        binding.customToolbarTitle.text = domain
-        binding.typeOfQrIcon.setImageResource(R.drawable.web)
-
+        binding.btnOpenUrl.setIconResource(R.drawable.browser)
+        binding.customToolbarTitle.text=getString(R.string.URL)
+        val faviconUrl = getFaviconUrl(url)
+        loadFavicon(faviconUrl)
         binding.qrResultText.apply {
             maxLines = 2
             ellipsize = TextUtils.TruncateAt.END
@@ -323,6 +306,21 @@ class ResultFragment : Fragment() {
         binding.btnOpenUrl.setOnClickListener { openInBrowser(url) }
         binding.btnCopy.setOnClickListener { copyToClipboard(url) }
         binding.btnShare.setOnClickListener { shareResult(url) }
+    }
+
+    private fun getFaviconUrl(url: String): String {
+        val uri = Uri.parse(url)
+        val baseUrl = uri.scheme + "://" + uri.host
+        return "$baseUrl/favicon.ico"
+    }
+
+    private fun loadFavicon(faviconUrl: String) {
+        Glide.with(this)
+            .load(faviconUrl)
+            .placeholder(R.drawable.web) // Default icon if favicon is not found
+            .error(R.drawable.web) // Default icon if there's an error loading the favicon
+            .diskCacheStrategy(DiskCacheStrategy.ALL)
+            .into(binding.typeOfQrIcon)
     }
 
     private fun setupForEmail(emailResult: EmailAddressParsedResult) {

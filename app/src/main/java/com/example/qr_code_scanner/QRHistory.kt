@@ -8,5 +8,5 @@ data class QRHistory(
     val type: String,
     val result: String,
     val timestamp: String,
-    val imageUri: String? = null // Nullable to handle cases where there's no image
+    val imageUri: String? = null
 )

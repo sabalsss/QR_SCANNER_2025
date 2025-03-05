@@ -1,7 +1,7 @@
 <resources>
     <string name="app_name">Qr Barcode Scanner</string>
     <string name="scanner_fragment">Scanner</string>
-    <string name="Flashlight">Torch</string>
+    <string name="Flashlight">Light</string>
     <string name="developer_name">Made By: Sabal Chaulagin(Student)</string>
     <string name="result">Scanned QR Result will appear here</string>
     <string name="History">History</string>
@@ -22,9 +22,9 @@
     <string name="open_url">Open Website</string>
     <string name="qr_type_unknown">Unknown</string>
     <string name="select_items">Select Items</string>
-    <string name="URL">Url</string>
+    <string name="URL">Link</string>
     <string name="zoom_progress">Camera Zoom Progress</string>
-    <string name="flip_camera">Flip Camera</string>
+    <string name="flip_camera">Flip</string>
     <string name="delete_selected">Delete (%d Selected)</string>
     <string name="call">Call Number</string>
     <string name="search_for">Search %1$s</string>
@@ -71,4 +71,5 @@
     <string name="save_csv">Save (CSV)</string>
     <string name="delete_item">Delete</string>
     <string name="filter">Filter</string>
+    <string name="search_product">Search Product</string>
 </resources>

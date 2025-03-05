@@ -58,7 +58,7 @@ class HistoryFragment : Fragment() {
         binding.historyRecyclerView.layoutManager = LinearLayoutManager(requireContext())
         binding.historyRecyclerView.adapter = adapter
         binding.historyRecyclerView.setHasFixedSize(true)
-        binding.historyRecyclerView.setItemViewCacheSize(20)
+        binding.historyRecyclerView.setItemViewCacheSize(20) // Cache 20 off-screen views
     }
 
     private fun deleteItem(item: QRHistory) {
@@ -130,7 +130,10 @@ class HistoryFragment : Fragment() {
 
         // Use FragmentTransaction to replace the current fragment with ResultFragment
         parentFragmentManager.beginTransaction()
-            .replace(R.id.fragment_container, resultFragment) // Replace `fragment_container` with your container ID
+            .replace(
+                R.id.fragment_container,
+                resultFragment
+            ) // Replace `fragment_container` with your container ID
             .addToBackStack(null) // Add to back stack so the user can navigate back
             .commit()
     }

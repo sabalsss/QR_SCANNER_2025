@@ -45,7 +45,6 @@ dependencies {
     implementation(libs.androidx.room.paging)
     ksp(libs.glide.ksp)
     implementation(libs.lottie)
-    debugImplementation (libs.leakcanary.android.v212)
     implementation(libs.material.v190)
     implementation(libs.androidx.room.runtime)
     implementation(libs.androidx.cardview)

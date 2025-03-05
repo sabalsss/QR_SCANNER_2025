@@ -90,7 +90,13 @@ class HistoryAdapter(
 
                     ParsedResultType.PRODUCT -> {
                         binding.qrTypeIcon.setImageResource(R.drawable.product)
-                        "Product"
+                        when {
+                            it.type.contains("EAN_13") -> "EAN-13 Barcode"
+                            it.type.contains("EAN_8") -> "EAN-8 Barcode"
+                            it.type.contains("UPC_A") -> "UPC-A Barcode"
+                            it.type.contains("UPC_E") -> "UPC-E Barcode"
+                            else -> "Product Barcode"
+                        }
                     }
 
                     ParsedResultType.TEL -> {
@@ -110,7 +116,7 @@ class HistoryAdapter(
 
                     ParsedResultType.URI -> {
                         binding.qrTypeIcon.setImageResource(R.drawable.web)
-                        "URL"
+                        "Link"
                     }
 
                     ParsedResultType.ADDRESSBOOK -> {
@@ -134,8 +140,48 @@ class HistoryAdapter(
                     }
 
                     else -> {
-                        binding.qrTypeIcon.setImageResource(R.drawable.qr_image_background)
-                        parsedResult?.type?.toString() ?: "Unknown"
+                        when {
+                            it.type.contains("CODE_39") -> {
+                                binding.qrTypeIcon.setImageResource(R.drawable.barcode)
+                                "Code 39 Barcode"
+                            }
+                            it.type.contains("CODE_93") -> {
+                                binding.qrTypeIcon.setImageResource(R.drawable.barcode)
+                                "Code 93 Barcode"
+                            }
+                            it.type.contains("CODE_128") -> {
+                                binding.qrTypeIcon.setImageResource(R.drawable.barcode)
+                                "Code 128 Barcode"
+                            }
+                            it.type.contains("ITF") -> {
+                                binding.qrTypeIcon.setImageResource(R.drawable.barcode)
+                                "ITF Barcode"
+                            }
+                            it.type.contains("PDF_417") -> {
+                                binding.qrTypeIcon.setImageResource(R.drawable.barcode)
+                                "PDF417 Barcode"
+                            }
+                            it.type.contains("CODABAR") -> {
+                                binding.qrTypeIcon.setImageResource(R.drawable.barcode)
+                                "Codabar"
+                            }
+                            it.type.contains("DATA_MATRIX") -> {
+                                binding.qrTypeIcon.setImageResource(R.drawable.barcode)
+                                "Data Matrix Code"
+                            }
+                            it.type.contains("AZTEC") -> {
+                                binding.qrTypeIcon.setImageResource(R.drawable.barcode)
+                                "Aztec Code"
+                            }
+                            it.type.contains("QR_CODE") -> {
+                                binding.qrTypeIcon.setImageResource(R.drawable.qr_image_background)
+                                "QR Code"
+                            }
+                            else -> {
+                                binding.qrTypeIcon.setImageResource(R.drawable.qr_image_background)
+                                parsedResult?.type?.toString() ?: "Unknown"
+                            }
+                        }
                     }
                 }
                 binding.itemType.text = resultType
