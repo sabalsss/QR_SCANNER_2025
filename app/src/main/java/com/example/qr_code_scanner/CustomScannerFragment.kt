@@ -44,7 +44,6 @@ class CustomScannerFragment : Fragment() {
     private companion object {
         private const val VIBRATION_DURATION = 150L
         private const val BLINK_DURATION = 350L
-        private const val BITMAP_COMPRESS_QUALITY = 50
     }
 
     private var _binding: FragmentCustomScannerBinding? = null
@@ -150,19 +149,17 @@ class CustomScannerFragment : Fragment() {
         lastZoomLevel = 0
         binding.zoomSeekbar.progress = 0
 
-        cameraSwitchJob = viewLifecycleOwner.lifecycleScope.launch(Dispatchers.IO) {
+        cameraSwitchJob = viewLifecycleOwner.lifecycleScope.launch {
             try {
-                withContext(Dispatchers.Main) {
-                    binding.zxingBarcodeScanner.pauseAndWait()
-                }
+                binding.zxingBarcodeScanner.pauseAndWait()
 
                 val newCameraId = if (isFrontCamera) 0 else 1
+                val barcodeView = binding.zxingBarcodeScanner.barcodeView
 
                 withContext(Dispatchers.Main) {
-                    val barcodeView = binding.zxingBarcodeScanner.barcodeView
-                    val cameraSettings = barcodeView.cameraSettings
-                    cameraSettings.requestedCameraId = newCameraId
-                    barcodeView.cameraSettings = cameraSettings
+                    barcodeView.cameraSettings = barcodeView.cameraSettings.apply {
+                        requestedCameraId = newCameraId
+                    }
 
                     binding.zxingBarcodeScanner.resume()
                     captureManager?.onResume()
@@ -170,18 +167,13 @@ class CustomScannerFragment : Fragment() {
                     isFrontCamera = !isFrontCamera
                     setCameraZoom(0)
 
-                    if (isFrontCamera) {
-                        binding.torchIcon.alpha = 0.3f
-                        binding.torchIcon.isClickable = false
-                    } else {
-                        binding.torchIcon.alpha = 1f
-                        binding.torchIcon.isClickable = true
+                    binding.torchIcon.apply {
+                        alpha = if (isFrontCamera) 0.3f else 1f
+                        isClickable = !isFrontCamera
                     }
                 }
             } catch (e: Exception) {
-                withContext(Dispatchers.Main) {
-                    Toast.makeText(context, "Failed to switch camera", Toast.LENGTH_SHORT).show()
-                }
+                Toast.makeText(context, "Failed to switch camera", Toast.LENGTH_SHORT).show()
             }
         }
     }
@@ -254,7 +246,7 @@ class CustomScannerFragment : Fragment() {
 
         topRectBarcodeView?.decodeContinuous { result ->
             if (!result.text.isNullOrEmpty()) {
-                viewLifecycleOwner.lifecycleScope.launch(Dispatchers.Main) {
+                viewLifecycleOwner.lifecycleScope.launch {
                     handleScanResult(
                         result.text,
                         result.barcodeFormat.toString(),
@@ -272,26 +264,22 @@ class CustomScannerFragment : Fragment() {
         beepAfterScan: Boolean,
         vibrateAfterScan: Boolean,
     ) {
-        saveResultToDatabase(scanType, scanResult)
-        navigateToResultScreenScan(scanResult, scanType)
-        if (beepAfterScan) beepManager?.playBeepSound()
-        if (vibrateAfterScan) vibrateDevice()
+        viewLifecycleOwner.lifecycleScope.launch {
+            saveResultToDatabase(scanType, scanResult)
+            navigateToResultScreen(scanResult, scanType)
+
+            if (beepAfterScan) beepManager?.playBeepSound()
+            if (vibrateAfterScan) vibrateDevice()
+        }
     }
 
     private fun vibrateDevice() {
-        vibrator?.let {
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-                it.vibrate(
-                    VibrationEffect.createOneShot(
-                        VIBRATION_DURATION,
-                        VibrationEffect.DEFAULT_AMPLITUDE
-                    )
-                )
-            } else {
-                @Suppress("DEPRECATION")
-                it.vibrate(VIBRATION_DURATION)
-            }
-        }
+        vibrator?.vibrate(
+            VibrationEffect.createOneShot(
+                VIBRATION_DURATION,
+                VibrationEffect.DEFAULT_AMPLITUDE
+            )
+        )
     }
 
     private fun saveResultToDatabase(type: String, result: String, imagePath: String? = null) {
@@ -326,10 +314,11 @@ class CustomScannerFragment : Fragment() {
         }
     }
 
-    private fun navigateToResultScreenScan(
+    private fun navigateToResultScreen(
         scanResult: String,
         scanType: String,
         imagePath: String? = null,
+        fromScanner: Boolean = true
     ) {
         val resultFragment = ResultFragment().apply {
             arguments = Bundle().apply {
@@ -340,17 +329,14 @@ class CustomScannerFragment : Fragment() {
                     "SCAN_TIME",
                     SimpleDateFormat("MMM d yyyy hh:mm a EEEE", Locale.getDefault()).format(Date())
                 )
-                putBoolean("FROM_SCANNER", true)
+                putBoolean("FROM_SCANNER", fromScanner)
             }
         }
 
-        // Use FragmentTransaction to replace the current fragment with ResultFragment
         parentFragmentManager.beginTransaction()
-            .replace(
-                R.id.fragment_container,
-                resultFragment
-            ) // Replace `fragment_container` with your container ID
-            .addToBackStack(null) // Add to back stack so the user can navigate back
+            .setReorderingAllowed(true)
+            .replace(R.id.fragment_container, resultFragment)
+            .addToBackStack(null)
             .commit()
     }
 
@@ -392,10 +378,8 @@ class CustomScannerFragment : Fragment() {
             try {
                 bitmap = decodeBitmapFromUri(uri)
                 bitmap?.let {
-                    val imagePath = saveImageToInternalStorage(it)
                     val pixels = IntArray(it.width * it.height)
                     it.getPixels(pixels, 0, it.width, 0, 0, it.width, it.height)
-
                     val luminanceSource = RGBLuminanceSource(it.width, it.height, pixels)
                     val binaryBitmap = BinaryBitmap(HybridBinarizer(luminanceSource))
 
@@ -406,8 +390,13 @@ class CustomScannerFragment : Fragment() {
                     )
 
                     val result = reader.decode(binaryBitmap, hints)
-                    saveResultToDatabase(result.barcodeFormat.toString(), result.text, imagePath)
-                    navigateToResultScreen(result.text, result.barcodeFormat.toString(), imagePath)
+                    
+                    val imagePath = saveImageToInternalStorage(it)
+                    
+                    withContext(Dispatchers.Main) {
+                        saveResultToDatabase(result.barcodeFormat.toString(), result.text, imagePath)
+                        navigateToResultScreen(result.text, result.barcodeFormat.toString(), imagePath)
+                    }
                 } ?: throw IllegalStateException("Failed to decode bitmap")
 
             } catch (e: Exception) {
@@ -422,11 +411,11 @@ class CustomScannerFragment : Fragment() {
 
     private fun saveImageToInternalStorage(bitmap: Bitmap): String {
         val context = context ?: return ""
-
         val fileName = "QR_${System.currentTimeMillis()}.jpg"
         val file = File(context.filesDir, fileName)
+        
         file.outputStream().use { outputStream ->
-            bitmap.compress(Bitmap.CompressFormat.JPEG, BITMAP_COMPRESS_QUALITY, outputStream)
+            bitmap.compress(Bitmap.CompressFormat.JPEG, 60, outputStream)
         }
         return file.absolutePath
     }
@@ -441,13 +430,15 @@ class CustomScannerFragment : Fragment() {
                     BitmapFactory.decodeStream(stream, null, this)
 
                     val displayMetrics = context.resources.displayMetrics
-                    val reqWidth = displayMetrics.widthPixels
-                    val reqHeight = displayMetrics.heightPixels
-
-                    inSampleSize = calculateInSampleSize(this, reqWidth, reqHeight)
+                    val targetWidth = displayMetrics.widthPixels
+                    val targetHeight = displayMetrics.heightPixels
+                    
+                    inSampleSize = calculateInSampleSize(this, targetWidth, targetHeight)
                     inJustDecodeBounds = false
                     inPreferredConfig = Bitmap.Config.RGB_565
+                    inMutable = true
                 }
+                
                 context.contentResolver.openInputStream(uri)?.use { inputStream ->
                     BitmapFactory.decodeStream(inputStream, null, options)
                 }
@@ -460,18 +451,17 @@ class CustomScannerFragment : Fragment() {
 
     private fun calculateInSampleSize(
         options: BitmapFactory.Options,
-        reqWidth: Int,
-        reqHeight: Int,
+        targetWidth: Int,
+        targetHeight: Int
     ): Int {
         val (height: Int, width: Int) = options.run { outHeight to outWidth }
-
         var inSampleSize = 1
 
-        if (height > reqHeight || width > reqWidth) {
+        if (height > targetHeight || width > targetWidth) {
             val halfHeight: Int = height / 2
             val halfWidth: Int = width / 2
 
-            while (halfHeight / inSampleSize >= reqHeight && halfWidth / inSampleSize >= reqWidth) {
+            while (halfHeight / inSampleSize >= targetHeight && halfWidth / inSampleSize >= targetWidth) {
                 inSampleSize *= 2
             }
         }
@@ -479,40 +469,12 @@ class CustomScannerFragment : Fragment() {
         return inSampleSize
     }
 
-    private fun navigateToResultScreen(
-        scanResult: String,
-        scanType: String,
-        imageUri: String? = null,
-    ) {
-        val resultFragment = ResultFragment().apply {
-            arguments = Bundle().apply {
-                putString("SCAN_RESULT", scanResult)
-                putString("SCAN_TYPE", scanType)
-                putString("IMAGE_URI", imageUri)
-                putString(
-                    "SCAN_TIME",
-                    SimpleDateFormat("MMM d yyyy hh:mm a EEEE", Locale.getDefault()).format(Date())
-                )
-                putBoolean("FROM_SCANNER", true)
-            }
-        }
-
-        // Use FragmentTransaction to replace the current fragment with ResultFragment
-        parentFragmentManager.beginTransaction()
-            .replace(
-                R.id.fragment_container,
-                resultFragment
-            ) // Replace `fragment_container` with your container ID
-            .addToBackStack(null) // Add to back stack so the user can navigate back
-            .commit()
-    }
-
     override fun onPause() {
         super.onPause()
-        _binding?.zxingBarcodeScanner?.pause()
-        blinkAnimation.let {
-            binding.line1.clearAnimation()
-            binding.line2.clearAnimation()
+        binding.apply {
+            zxingBarcodeScanner.pause()
+            line1.clearAnimation()
+            line2.clearAnimation()
         }
         cameraSwitchJob?.cancel()
         captureManager?.onPause()
@@ -528,17 +490,10 @@ class CustomScannerFragment : Fragment() {
         }
         topRectBarcodeView = null
 
-        _binding?.apply {
-            zxingBarcodeScanner.pause()
-            line1.clearAnimation()
-            line2.clearAnimation()
-        }
-
         captureManager?.onDestroy()
         captureManager = null
 
         beepManager = null
-
         vibrator = null
         _binding = null
 
@@ -547,17 +502,16 @@ class CustomScannerFragment : Fragment() {
 
     override fun onResume() {
         super.onResume()
-        if (_binding == null) return
-
-        binding.zxingBarcodeScanner.resume()
-        captureManager?.onResume()
-        blinkAnimation.let {
-            binding.line1.startAnimation(it)
-            binding.line2.startAnimation(it)
+        _binding?.let { binding ->
+            binding.apply {
+                zxingBarcodeScanner.resume()
+                line1.startAnimation(blinkAnimation)
+                line2.startAnimation(blinkAnimation)
+                zoomSeekbar.progress = 0
+            }
+            captureManager?.onResume()
+            setCameraZoom(0)
         }
-
-        setCameraZoom(0)
-        binding.zoomSeekbar.progress = 0
     }
 
     override fun onSaveInstanceState(outState: Bundle) {

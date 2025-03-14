@@ -4,6 +4,7 @@ import android.os.Bundle
 import android.view.*
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.lifecycleScope
@@ -12,6 +13,7 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import com.example.qr_code_scanner.databinding.FragmentHistoryBinding
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.collectLatest
+import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
@@ -55,10 +57,21 @@ class HistoryFragment : Fragment() {
             onDelete = { item -> deleteItem(item) },
             onSelectionChange = { item, isSelected -> handleSelectionChange(item, isSelected) }
         )
-        binding.historyRecyclerView.layoutManager = LinearLayoutManager(requireContext())
-        binding.historyRecyclerView.adapter = adapter
-        binding.historyRecyclerView.setHasFixedSize(true)
-        binding.historyRecyclerView.setItemViewCacheSize(20) // Cache 20 off-screen views
+        binding.historyRecyclerView.apply {
+            layoutManager = LinearLayoutManager(requireContext())
+            adapter = this@HistoryFragment.adapter
+            setHasFixedSize(true)
+            setItemViewCacheSize(20) // Cache size already set correctly
+
+            // Add RecyclerView pool size optimization
+            recycledViewPool.setMaxRecycledViews(0, 15) // Assuming single view type (0)
+
+            // Enable view recycling
+            (layoutManager as LinearLayoutManager).apply {
+                isItemPrefetchEnabled = true
+                initialPrefetchItemCount = 4 // Prefetch items for smoother scrolling
+            }
+        }
     }
 
     private fun deleteItem(item: QRHistory) {
@@ -86,12 +99,12 @@ class HistoryFragment : Fragment() {
     }
 
     private fun observePagedData() {
-        viewLifecycleOwner.lifecycleScope.launch(Dispatchers.IO) {
-            viewModel.pagedHistory.collectLatest { pagingData ->
-                withContext(Dispatchers.Main) {
+        viewLifecycleOwner.lifecycleScope.launch {
+            viewModel.pagedHistory
+                .distinctUntilChanged() // Prevent unnecessary updates when data remains the same
+                .collectLatest { pagingData ->
                     adapter.submitData(pagingData)
                 }
-            }
         }
 
         viewLifecycleOwner.lifecycleScope.launch {
@@ -104,18 +117,13 @@ class HistoryFragment : Fragment() {
                     View.GONE
                 }
 
-                if (isEmpty) {
-                    binding.historyRecyclerView.visibility = View.GONE
-                    binding.noHistoryTextView.visibility = View.VISIBLE
-                    binding.noHistoryAnimation.visibility = View.VISIBLE
-                } else {
-                    binding.historyRecyclerView.visibility = View.VISIBLE
-                    binding.noHistoryTextView.visibility = View.GONE
-                    binding.noHistoryAnimation.visibility = View.GONE
-                }
+                binding.historyRecyclerView.visibility = if (isEmpty) View.GONE else View.VISIBLE
+                binding.noHistoryTextView.visibility = if (isEmpty) View.VISIBLE else View.GONE
+                binding.noHistoryAnimation.visibility = if (isEmpty) View.VISIBLE else View.GONE
             }
         }
     }
+
 
     private fun openResultScreen(item: QRHistory) {
         // Create a new instance of ResultFragment
@@ -196,9 +204,17 @@ class HistoryFragment : Fragment() {
         AlertDialog.Builder(requireContext())
             .setTitle(getString(R.string.delete_confirmation))
             .setMessage(getString(R.string.delete_message))
-            .setPositiveButton(android.R.string.ok) { _, _ -> performDelete() }
+            .setPositiveButton(android.R.string.ok) { dialog, _ -> performDelete() }
             .setNegativeButton(android.R.string.cancel, null)
+            .create()
+            .apply {
+                setOnShowListener {
+                    getButton(AlertDialog.BUTTON_POSITIVE).setTextColor(ContextCompat.getColor(context, R.color.white))
+                    getButton(AlertDialog.BUTTON_NEGATIVE).setTextColor(ContextCompat.getColor(context, R.color.white))
+                }
+            }
             .show()
+
     }
 
     private fun performDelete() {
@@ -254,7 +270,11 @@ class HistoryFragment : Fragment() {
             else -> super.onOptionsItemSelected(item)
         }
     }
-
+    override fun onResume() {
+        super.onResume()
+        // Update the toolbar title when the fragment is resumed
+        (activity as? MainActivity)?.updateToolbar(this)
+    }
     override fun onDestroyView() {
         (binding.historyRecyclerView.adapter as? HistoryAdapter)?.cleanup()
 

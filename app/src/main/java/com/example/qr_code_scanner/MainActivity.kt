@@ -28,11 +28,17 @@ class MainActivity : AppCompatActivity() {
 
         requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_PORTRAIT
         _binding = ActivityMainBinding.inflate(layoutInflater)
+
         setContentView(binding.root)
 
         setupDrawer()
         checkCameraPermission()
-
+        supportFragmentManager.addOnBackStackChangedListener {
+            val currentFragment = supportFragmentManager.findFragmentById(R.id.fragment_container)
+            if (currentFragment != null) {
+                updateToolbar(currentFragment)
+            }
+        }
         if (savedInstanceState == null) {
             initializeDefaultFragment()
         }
@@ -89,6 +95,7 @@ class MainActivity : AppCompatActivity() {
         )
         binding.navigationView.setCheckedItem(R.id.nav_scanner)
     }
+
     private fun setupNavigationListener() {
         binding.navigationView.setNavigationItemSelectedListener { item ->
             if (System.currentTimeMillis() - lastClickTime < clickTime) return@setNavigationItemSelectedListener false
@@ -96,7 +103,8 @@ class MainActivity : AppCompatActivity() {
 
             val selectedFragment = when (item.itemId) {
                 R.id.nav_scanner -> {
-                    val currentFragment = supportFragmentManager.findFragmentById(R.id.fragment_container)
+                    val currentFragment =
+                        supportFragmentManager.findFragmentById(R.id.fragment_container)
                     if (currentFragment is CustomScannerFragment) {
                         drawerLayout.closeDrawers()
                         return@setNavigationItemSelectedListener false
@@ -105,7 +113,8 @@ class MainActivity : AppCompatActivity() {
                 }
 
                 R.id.nav_history -> {
-                    val currentFragment = supportFragmentManager.findFragmentById(R.id.fragment_container)
+                    val currentFragment =
+                        supportFragmentManager.findFragmentById(R.id.fragment_container)
                     if (currentFragment is HistoryFragment) {
                         drawerLayout.closeDrawers()
                         return@setNavigationItemSelectedListener false
@@ -114,7 +123,8 @@ class MainActivity : AppCompatActivity() {
                 }
 
                 R.id.nav_settings -> {
-                    val currentFragment = supportFragmentManager.findFragmentById(R.id.fragment_container)
+                    val currentFragment =
+                        supportFragmentManager.findFragmentById(R.id.fragment_container)
                     if (currentFragment is SettingsFragment) {
                         drawerLayout.closeDrawers()
                         return@setNavigationItemSelectedListener false
@@ -145,29 +155,29 @@ class MainActivity : AppCompatActivity() {
         transaction.replace(R.id.fragment_container, fragment, fragment::class.java.simpleName)
         transaction.setReorderingAllowed(true)
 
-        // Only add to back stack if it's not a direct navigation to ScannerFragment
         if (addToBackStack && !(fragment is CustomScannerFragment && (currentFragment is HistoryFragment || currentFragment is SettingsFragment))) {
             transaction.addToBackStack(null)
         }
 
         transaction.commit()
 
-        // Close the drawer immediately after the fragment is replaced
         drawerLayout.closeDrawers()
 
+        // Update the toolbar after the fragment is replaced
         updateToolbar(fragment)
         updateNavigationDrawerSelection(fragment)
         toggle.syncState()
     }
 
 
-    private fun updateToolbar(fragment: Fragment) {
+    fun updateToolbar(fragment: Fragment) {
         setSupportActionBar(binding.toolbar)
 
         supportActionBar?.apply {
             title = when (fragment) {
                 is HistoryFragment -> getString(R.string.History)
                 is SettingsFragment -> getString(R.string.settings_title)
+                is ResultFragment -> getString(R.string.result_page) // Add this line
                 else -> getString(R.string.scanner_fragment) // Default title
             }
 
@@ -175,6 +185,7 @@ class MainActivity : AppCompatActivity() {
             when (fragment) {
                 is CustomScannerFragment -> supportActionBar?.setIcon(R.drawable.scanner_frame_toolbar)
                 is SettingsFragment -> supportActionBar?.setIcon(R.drawable.settings_icon)
+                is ResultFragment -> supportActionBar?.setIcon(null) // Add this line
                 else -> supportActionBar?.setIcon(R.drawable.history_icon)
             }
         }
@@ -224,11 +235,18 @@ class MainActivity : AppCompatActivity() {
                 }
                 replaceFragment(CustomScannerFragment(), addToBackStack = false)
             }
+
             is SettingsFragment -> {
                 replaceFragment(CustomScannerFragment(), addToBackStack = false)
             }
+
             else -> {
                 super.onBackPressed()
+                // Update the toolbar after the back press is handled
+                val newFragment = supportFragmentManager.findFragmentById(R.id.fragment_container)
+                if (newFragment != null) {
+                    updateToolbar(newFragment)
+                }
             }
         }
     }

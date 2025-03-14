@@ -16,13 +16,12 @@
         app:zxing_scanner_layout="@layout/custom_barcode_scanner"
         app:zxing_use_texture_view="false" />
 
-    <!-- Buttons LinearLayout above barcode image -->
+    <!-- Buttons LinearLayout -->
     <LinearLayout
         android:id="@+id/top_buttons_container"
-        android:layout_width="wrap_content"
+        android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:layout_marginTop="20dp"
-        android:layout_marginBottom="20dp"
+        android:layout_marginBottom="60dp"
         android:gravity="center"
         android:orientation="horizontal"
         app:layout_constraintBottom_toTopOf="@id/barcodeBorderImage"
@@ -33,107 +32,107 @@
         <!-- Flip Camera Button -->
         <com.google.android.material.button.MaterialButton
             android:id="@+id/flip_camera"
-            android:layout_width="100dp"
+            android:layout_width="0dp"
             android:layout_height="80dp"
-            android:layout_margin="10dp"
-            app:cornerRadius="5dp"
+            android:layout_margin="8dp"
+            android:layout_weight="1"
             android:backgroundTint="@color/semi_transparent"
             android:drawableTop="@drawable/flip_camera"
-            android:drawablePadding="8dp"
             android:gravity="center"
-            android:padding="10dp"
+            android:padding="8dp"
             android:text="@string/flip_camera"
-            android:textColor="@color/white" />
+            android:textColor="@color/white"
+            app:cornerRadius="15dp" />
 
         <!-- Torch Icon Button -->
         <com.google.android.material.button.MaterialButton
             android:id="@+id/torch_icon"
-            android:layout_width="100dp"
+            android:layout_width="0dp"
             android:layout_height="80dp"
-            android:layout_margin="10dp"
-            app:cornerRadius="5dp"
+            android:layout_margin="8dp"
+            android:layout_weight="1"
             android:backgroundTint="@color/semi_transparent"
             android:drawableTop="@drawable/flash_light_off"
-            android:drawablePadding="8dp"
+
             android:gravity="center"
-            android:padding="10dp"
+            android:padding="8dp"
             android:text="@string/Flashlight"
-            android:textColor="@color/white" />
+            android:textColor="@color/white"
+            app:cornerRadius="15dp" />
 
         <!-- Use Image Button -->
         <com.google.android.material.button.MaterialButton
             android:id="@+id/use_image"
-            android:layout_width="100dp"
+            android:layout_width="0dp"
             android:layout_height="80dp"
-            android:layout_margin="10dp"
-            app:cornerRadius="5dp"
+            android:layout_margin="8dp"
+            android:layout_weight="1"
             android:backgroundTint="@color/semi_transparent"
-            android:drawableTop="@drawable/open_gallery"
-            android:drawablePadding="8dp"
-            android:gravity="center"
             android:contentDescription="@string/open_gallery"
-            android:padding="10dp"
+            android:drawableTop="@drawable/open_gallery"
+
+            android:gravity="center"
+            android:padding="8dp"
             android:text="@string/open_gallery"
-            android:textColor="@color/white" />
+            android:textColor="@color/white"
+            app:cornerRadius="15dp" />
     </LinearLayout>
+    <!-- ... existing code ... -->
 
     <!-- Barcode Border Image -->
     <ImageView
         android:id="@+id/barcodeBorderImage"
         android:layout_width="0dp"
         android:layout_height="0dp"
-        android:layout_marginStart="50dp"
-        android:layout_marginTop="50dp"
-        android:layout_marginEnd="50dp"
-        android:layout_marginBottom="50dp"
         android:contentDescription="@string/app_name"
+        android:scaleType="fitCenter"
         android:src="@drawable/scanner_frame"
         app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintDimensionRatio="1:1"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHeight_percent="0.5"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
         app:layout_constraintWidth_percent="0.8" />
-
-    <!-- Horizontal Scanner Line 1 -->
+    <!-- Horizontal Scanner Line 1 (Centered in Barcode Image) -->
     <View
         android:id="@+id/line1"
-        android:layout_width="250dp"
-        android:layout_height="1.5dp"
+        android:layout_width="0dp"
+        android:layout_height="1dp"
+        android:layout_marginBottom="25dp"
         android:background="@color/scanner_line_start"
         app:layout_constraintBottom_toBottomOf="@id/barcodeBorderImage"
         app:layout_constraintEnd_toEndOf="@id/barcodeBorderImage"
         app:layout_constraintStart_toStartOf="@id/barcodeBorderImage"
         app:layout_constraintTop_toTopOf="@id/barcodeBorderImage"
-        app:layout_constraintVertical_bias="0.5" />
+        app:layout_constraintWidth_percent="0.6" />
 
-    <!-- Horizontal Scanner Line 2 -->
+    <!-- Horizontal Scanner Line 2 (Below Line 1 with a gap) -->
     <View
         android:id="@+id/line2"
-        android:layout_width="250dp"
-        android:layout_height="1.5dp"
-        android:layout_marginTop="12dp"
+        android:layout_width="0dp"
+        android:layout_height="1dp"
+        android:layout_marginTop="15dp"
         android:background="@color/scanner_line_start"
         app:layout_constraintEnd_toEndOf="@id/barcodeBorderImage"
         app:layout_constraintStart_toStartOf="@id/barcodeBorderImage"
         app:layout_constraintTop_toBottomOf="@id/line1"
-        app:layout_constraintVertical_bias="0.55" />
+        app:layout_constraintWidth_percent="0.6" />
 
-    <!-- Zoom SeekBar -->
     <SeekBar
         android:id="@+id/zoom_seekbar"
-        android:layout_width="0dp"
+        android:layout_width="310dp"
         android:layout_height="wrap_content"
-        android:layout_marginStart="50dp"
-        android:layout_marginEnd="50dp"
-        android:layout_marginBottom="100dp"
+        android:layout_marginBottom="80dp"
         android:contentDescription="@string/zoom_progress"
         android:max="100"
         android:progress="0"
         android:progressTint="@color/border_color"
+        android:thumb="@drawable/thumb"
         android:thumbTint="@color/scanner_line_start"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent" />
+        app:layout_constraintHorizontal_bias="0.5"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintWidth_percent="0.8" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>

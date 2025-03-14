@@ -3,22 +3,24 @@
     android:id="@+id/cardview"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:layout_margin="4dp"
-    app:cardBackgroundColor="@color/card_background"
-    app:cardCornerRadius="8dp"
+    android:layout_margin="6dp"
+    app:cardCornerRadius="10dp"
     app:cardElevation="20dp">
 
     <!--    item_layout.xml-->
     <RelativeLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:padding="8dp">
+        android:background="@drawable/settings_card_bg"
+        android:padding="5dp"
+        >
 
         <!-- Image Icon -->
         <ImageView
             android:id="@+id/qrTypeIcon"
-            android:layout_width="30dp"
-            android:layout_height="30dp"
+            android:layout_width="35dp"
+            android:layout_height="35dp"
+            android:layout_marginStart="2dp"
             android:layout_alignParentStart="true"
             android:layout_centerVertical="true"
             android:layout_marginTop="25dp"
@@ -31,9 +33,9 @@
             android:id="@+id/text_view"
             android:layout_width="280dp"
             android:layout_height="wrap_content"
-            android:layout_marginStart="40dp"
+            android:layout_marginStart="45dp"
             android:orientation="vertical"
-            android:padding="7dp">
+            android:padding="5dp">
 
             <!-- QR Type -->
             <TextView
@@ -43,31 +45,31 @@
                 android:maxLines="1"
                 android:text="@string/qr_type_unknown"
                 android:textColor="@color/white"
-                android:textSize="22sp"
-                android:textStyle="bold" />
+                android:textSize="18sp"
+                />
 
             <!-- QR Result -->
             <TextView
                 android:id="@+id/itemResult"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="8dp"
+                android:layout_marginTop="10dp"
                 android:ellipsize="end"
-                android:maxLines="3"
+                android:maxLines="2"
                 android:text="@string/no_qr_scanned"
                 android:textColor="@color/white"
-                android:textSize="18sp" />
+                android:textSize="20sp" />
 
             <!-- Timestamp -->
             <TextView
                 android:id="@+id/itemTimestamp"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="12dp"
-                android:maxLines="1"
+                android:layout_marginTop="10dp"
+                android:maxLines="2"
                 android:text="@string/scanned_time"
                 android:textColor="@color/gray_light"
-                android:textSize="16sp" />
+                android:textSize="14sp" />
         </LinearLayout>
 
         <!-- Tick Icon -->

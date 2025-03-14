@@ -88,16 +88,6 @@ class HistoryAdapter(
                         "Text"
                     }
 
-                    ParsedResultType.PRODUCT -> {
-                        binding.qrTypeIcon.setImageResource(R.drawable.product)
-                        when {
-                            it.type.contains("EAN_13") -> "EAN-13 Barcode"
-                            it.type.contains("EAN_8") -> "EAN-8 Barcode"
-                            it.type.contains("UPC_A") -> "UPC-A Barcode"
-                            it.type.contains("UPC_E") -> "UPC-E Barcode"
-                            else -> "Product Barcode"
-                        }
-                    }
 
                     ParsedResultType.TEL -> {
                         binding.qrTypeIcon.setImageResource(R.drawable.phone)
@@ -106,7 +96,7 @@ class HistoryAdapter(
 
                     ParsedResultType.WIFI -> {
                         binding.qrTypeIcon.setImageResource(R.drawable.wifi)
-                        "WiFi"
+                        "Wi-Fi"
                     }
 
                     ParsedResultType.SMS -> {
@@ -115,7 +105,7 @@ class HistoryAdapter(
                     }
 
                     ParsedResultType.URI -> {
-                        binding.qrTypeIcon.setImageResource(R.drawable.web)
+                        binding.qrTypeIcon.setImageResource(R.drawable.browser)
                         "Link"
                     }
 
@@ -123,6 +113,7 @@ class HistoryAdapter(
                         binding.qrTypeIcon.setImageResource(R.drawable.address_book)
                         "vCard"
                     }
+
 
                     ParsedResultType.EMAIL_ADDRESS -> {
                         binding.qrTypeIcon.setImageResource(R.drawable.email)
@@ -140,50 +131,12 @@ class HistoryAdapter(
                     }
 
                     else -> {
-                        when {
-                            it.type.contains("CODE_39") -> {
-                                binding.qrTypeIcon.setImageResource(R.drawable.barcode)
-                                "Code 39 Barcode"
-                            }
-                            it.type.contains("CODE_93") -> {
-                                binding.qrTypeIcon.setImageResource(R.drawable.barcode)
-                                "Code 93 Barcode"
-                            }
-                            it.type.contains("CODE_128") -> {
-                                binding.qrTypeIcon.setImageResource(R.drawable.barcode)
-                                "Code 128 Barcode"
-                            }
-                            it.type.contains("ITF") -> {
-                                binding.qrTypeIcon.setImageResource(R.drawable.barcode)
-                                "ITF Barcode"
-                            }
-                            it.type.contains("PDF_417") -> {
-                                binding.qrTypeIcon.setImageResource(R.drawable.barcode)
-                                "PDF417 Barcode"
-                            }
-                            it.type.contains("CODABAR") -> {
-                                binding.qrTypeIcon.setImageResource(R.drawable.barcode)
-                                "Codabar"
-                            }
-                            it.type.contains("DATA_MATRIX") -> {
-                                binding.qrTypeIcon.setImageResource(R.drawable.barcode)
-                                "Data Matrix Code"
-                            }
-                            it.type.contains("AZTEC") -> {
-                                binding.qrTypeIcon.setImageResource(R.drawable.barcode)
-                                "Aztec Code"
-                            }
-                            it.type.contains("QR_CODE") -> {
-                                binding.qrTypeIcon.setImageResource(R.drawable.qr_image_background)
-                                "QR Code"
-                            }
-                            else -> {
-                                binding.qrTypeIcon.setImageResource(R.drawable.qr_image_background)
-                                parsedResult?.type?.toString() ?: "Unknown"
-                            }
-                        }
+                        binding.qrTypeIcon.setImageResource(R.drawable.qr_image_background)
+                        parsedResult?.type?.toString() ?: "Unknown"
                     }
                 }
+
+
                 binding.itemType.text = resultType
 
                 binding.menuButton.setOnClickListener { view ->
@@ -237,7 +190,7 @@ class HistoryAdapter(
                 Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS),
                 folderName
             )
-            if (!appFolder.exists()) appFolder.mkdirs()
+
 
             val file = File(appFolder, fileName)
             try {

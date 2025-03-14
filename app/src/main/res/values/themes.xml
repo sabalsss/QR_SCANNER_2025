@@ -1,12 +1,18 @@
-<resources >
+<resources>
     <style name="Base.Theme.QR_CODE_SCANNER" parent="Theme.Material3.DayNight.NoActionBar">
         <item name="textAllCaps">false</item>
         <item name="android:fontFamily">@font/app_font</item>
-        <item name="android:statusBarColor">@color/border_color</item>
+        <item name="android:statusBarColor">@color/toolbar_color</item>
 
     </style>
 
-
+    <style name="NavigationDrawerTextStyle" parent="TextAppearance.MaterialComponents.Body1">
+        <item name="android:textSize">18sp</item>
+    </style>
+    <style name="CircularImageView">
+        <item name="cornerFamily">rounded</item>
+        <item name="cornerSize">10%</item> <!-- Makes the corners fully rounded -->
+    </style>
     <style name="Theme.QR_CODE_SCANNER" parent="Base.Theme.QR_CODE_SCANNER" />
 
 

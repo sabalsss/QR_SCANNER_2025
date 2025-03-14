@@ -7,13 +7,16 @@
         android:checkable="true"
         android:icon="@drawable/scanner_frame_toolbar"
         android:title="@string/scanner_fragment"
-        app:showAsAction="ifRoom" />
+        app:showAsAction="ifRoom"
+        android:contentDescription="@string/app_name"
+        />
 
     <item
         android:id="@+id/nav_history"
         android:checkable="true"
         android:icon="@drawable/history_icon"
         android:title="@string/History"
+        android:contentDescription="@string/History"
         app:showAsAction="ifRoom" />
 
     <item
@@ -21,5 +24,6 @@
         android:checkable="true"
         android:icon="@drawable/settings_icon"
         android:title="@string/settings_title"
+        android:contentDescription="@string/settings_title"
         app:showAsAction="ifRoom" />
 </menu>

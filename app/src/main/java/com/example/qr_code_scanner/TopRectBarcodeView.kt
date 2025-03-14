@@ -17,6 +17,7 @@ class TopRectBarcodeView @JvmOverloads constructor(
     private var moveLeft: Float = 0f
     private var moveRight: Float = 0f
 
+
     // Helper method to convert dp to pixels
     private fun dpToPx(dp: Float): Int {
         val density = resources.displayMetrics.density

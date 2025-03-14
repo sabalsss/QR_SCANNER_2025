@@ -1,75 +1,107 @@
 <resources>
-    <string name="app_name">Qr Barcode Scanner</string>
+    <!-- App Information -->
+    <string name="app_name">QR Barcode Scanner</string>
+    <string name="developer_name">Made by: Sabal Chaulagin (Student)</string>
+
+    <!-- Scanner Fragment -->
     <string name="scanner_fragment">Scanner</string>
-    <string name="Flashlight">Light</string>
-    <string name="developer_name">Made By: Sabal Chaulagin(Student)</string>
-    <string name="result">Scanned QR Result will appear here</string>
+    <string name="Flashlight">Flashlight</string>
+    <string name="result">The scanned QR result will appear here.</string>
+
+    <!-- Navigation -->
+    <string name="navigation_drawer_open">Open drawer</string>
+    <string name="navigation_drawer_close">Close drawer</string>
+
+    <!-- Actions -->
+    <string name="share">Share</string>
+    <string name="Copy">Copy</string>
+    <string name="delete_item">Delete</string>
+    <string name="delete_confirmation">Delete history</string>
+    <string name="delete_message">Are you sure you want to delete ?</string>
+
+    <string name="open_url">Open website</string>
+    <string name="qr_result_image">QR image</string>
+    <string name="open_gallery">Use image</string>
+    <string name="no_qr_scanned">No scanned History, Please scan a QR code or barcode.</string>
+    <string name="no_content_found">No content found in the QR code.</string>
+    <string name="no_result_found">No result found.</string>
+
+    <!-- Camera & Scanner -->
+    <string name="zxing_msg_camera_framework_bug">Oops! It looks like the camera is not working.</string>
+    <string name="zoom_progress">Camera zoom progress</string>
+    <string name="flip_camera">Flip camera</string>
+    <string name="batch_scan_mode">Batch scan mode</string>
+    <string name="place_barcode_text">Place the barcode or QR code here.</string>
+
+    <!-- Connectivity -->
+    <string name="wifi_info_label">Network name: %1$s\nPassword: %2$s\nEncryption: %3$s</string>
+    <string name="wifi_suggestion_success">Connected to %1$s</string>
+    <string name="wifi_connection_failed">Failed to connect.</string>
+    <string name="connect_to_wifi">Connect to Wi-Fi</string>
+
+    <!-- History -->
     <string name="History">History</string>
     <string name="items_selected">%1$d selected</string>
-    <string name="delete_confirmation">Delete History</string>
-    <string name="delete_message">Are you sure you want to delete this item?</string>
-    <string name="Connect">Connect</string>
-    <string name="Copy">Copy</string>
-    <string name="navigation_drawer_open">Open Drawer</string>
-    <string name="navigation_drawer_close">Close Drawer</string>
-    <string name="zxing_app_name">Qr Code Scanner 2025</string>
-    <string name="no_qr_scanned">No Scanned History Please Scan Some Qr or Barcodes</string>
-    <string name="zxing_msg_camera_framework_bug">Oops! Looks Like the Camera is not working</string>
-    <string name="share">Share</string>
-    <string name="result_page">Result</string>
-    <string name="open_gallery">Use Image</string>
-    <string name="qr_result_image">QR image</string>
-    <string name="open_url">Open Website</string>
-    <string name="qr_type_unknown">Unknown</string>
-    <string name="select_items">Select Items</string>
-    <string name="URL">Link</string>
-    <string name="zoom_progress">Camera Zoom Progress</string>
-    <string name="flip_camera">Flip</string>
-    <string name="delete_selected">Delete (%d Selected)</string>
-    <string name="call">Call Number</string>
-    <string name="search_for">Search %1$s</string>
-    <string name="open_browser">Open in Browser</string>
-    <string name="send_email">Send Email</string>
-    <string name="email_name">Email</string>
-    <string name="geo_name">Geographic Location</string>
-    <string name="send_email_details">%1$s\n%2$s\n%3$s</string>
-    <string name="product_code_label">Product Code: %1$s</string>
-    <string name="wifi_info_label">Network Name: %1$s\nPassword: %2$s\nEncryption: %3$s</string>
-    <string name="phone_label">Phone: %1$s</string>
-    <string name="no_password_to_copy">No password to copy</string>
-    <string name="open_in_maps">Open in Maps</string>
-    <string name="send_sms">Send sms</string>
+    <string name="select_items">Select</string>
+    <string name="select_item">Selected</string>
+    <string name="no_items">No items selected</string>
+
+    <!-- Search & Browser -->
+    <string name="search_for">Search for %1$s</string>
+    <string name="open_browser">Open In Browser</string>
     <string name="base_google_search_url">https://www.google.com/search?q=</string>
     <string name="base_google_maps_search">https://www.google.com/maps/search/?api=1&amp;query=%1$s</string>
-    <string name="scanned_time">%1$s</string>
-    <string name="no_content_found">No content found in QR code</string>
-    <string name="add_event">Add Event</string>
-    <string name="select_item">Selected Item</string>
-    <string name="Vcard">Address book(vCard)</string>
-    <string name="place_barcode_text">Place the Barcode QR Here</string>
-    <string name="VIN">VIN(Vehicle Identification Number)</string>
-    <string name="ISBN">(ISBN)International Standard Book Number</string>
-    <string name="no_result_found">No result found</string>
-    <string name="result_screen">Result Screen</string>
-    <string name="copied_to_clipboard">Copied to clipboard</string>
-    <string name="wifi_suggestion_success">Connected to %1$s</string>
-    <string name="wifi_connection_failed">Failed to connect</string>
+    <string name="search_product">Search product</string>
+
+    <!-- Contacts & Communication -->
+    <string name="call">Call Number</string>
+    <string name="send_email">Send E-mail</string>
+    <string name="email_name">E-mail</string>
+    <string name="geo_name">Geographic location</string>
+    <string name="send_email_details">%1$s\n%2$s\n%3$s</string>
+    <string name="phone_label">Phone: %1$s</string>
+    <string name="send_sms">Send SMS</string>
+
+    <!-- Product & Identification Codes -->
+    <string name="product_code_label">Product code: %1$s</string>
+    <string name="VIN">VIN (Vehicle Identification Number)</string>
+    <string name="ISBN">ISBN (International Standard Book Number)</string>
+
+    <!-- Maps & Events -->
+    <string name="open_in_maps">Open in Maps</string>
+    <string name="add_event">Add event</string>
+    <string name="open_browser_error">Not Openable</string>
+
+    <!-- Clipboard & Copying -->
+    <string name="copied_to_clipboard">Copied to clipboard.</string>
+    <string name="copy_password">Copy password</string>
+    <string name="no_password_to_copy">No password to copy.</string>
+
+    <!-- File & Download -->
+    <string name="download_result">Download Result</string>
+    <string name="save_txt">Save as Text</string>
+    <string name="save_csv">Save as CSV</string>
+
+    <!-- Settings -->
     <string name="settings_title">Settings</string>
-    <string name="beep">Beep After Scan</string>
-    <string name="wifi_auto_connect">Auto Connect to Network</string>
-    <string name="vibrate">Vibrate After Scan</string>
-    <string name="copy_to_clipboard">Auto Copy to Clipboard</string>
-    <string name="url_info">URL info</string>
-    <string name="batch_scan_mode">Batch scan mode</string>
+    <string name="beep">Beep after scan</string>
+    <string name="wifi_auto_connect">Auto-connect to network</string>
+    <string name="show_web_icon">Show website icon from link</string>
+    <string name="vibrate">Vibrate after scan</string>
+    <string name="copy_to_clipboard">Auto-copy to clipboard</string>
     <string name="use_auto_focus">Use auto focus</string>
     <string name="touch_focus">Touch focus</string>
-    <string name="no_items">No Items Selected</string>
-    <string name="copy_password">Copy Password</string>
-    <string name="connect_to_wifi">Connect to Wi-Fi</string>
-    <string name="download_result">Download Result</string>
-    <string name="save_txt">Save (Text)</string>
-    <string name="save_csv">Save (CSV)</string>
-    <string name="delete_item">Delete</string>
-    <string name="filter">Filter</string>
-    <string name="search_product">Search Product</string>
+    <string name="fetch_icon_from">Show Website Logo</string>
+
+    <!-- General -->
+    <string name="URL">Link</string>
+    <string name="url_info">URL info</string>
+    <string name="result_page">Result</string>
+    <string name="result_screen">Result screen</string>
+    <string name="scanned_time">%1$s</string>
+    <string name="qr_type_unknown">Unknown</string>
+    <string name="Vcard">vCard</string>
+
+    <string name="wifi">Wi-Fi</string>
+    <string name="text">Text</string>
 </resources>

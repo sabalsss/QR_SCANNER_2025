@@ -15,7 +15,6 @@ import android.provider.Settings
 import android.text.Layout
 import android.text.TextUtils
 import android.text.util.Linkify
-import android.util.Log
 import android.util.TypedValue
 import android.view.LayoutInflater
 import android.view.View
@@ -40,8 +39,8 @@ class ResultFragment : Fragment() {
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
-        savedInstanceState: Bundle?
-    ): View? {
+        savedInstanceState: Bundle?,
+    ): View {
         _binding = FragmentResultBinding.inflate(inflater, container, false)
         return binding.root
     }
@@ -49,7 +48,8 @@ class ResultFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        val scanResultString = arguments?.getString("SCAN_RESULT") ?: getString(R.string.no_result_found)
+        val scanResultString =
+            arguments?.getString("SCAN_RESULT") ?: getString(R.string.no_result_found)
         val scanType = arguments?.getString("SCAN_TYPE") ?: "Unknown Type"
         val scannedTime = arguments?.getString("SCAN_TIME") ?: getCurrentTimestamp()
         val imageUriString = arguments?.getString("IMAGE_URI")
@@ -73,17 +73,16 @@ class ResultFragment : Fragment() {
                 Glide.with(this)
                     .load(imageFile)
                     .placeholder(R.mipmap.ic_launcher_round)
-                    .diskCacheStrategy(DiskCacheStrategy.ALL)
+                    .diskCacheStrategy(DiskCacheStrategy.NONE)
                     .error(R.drawable.error_24px)
-                    .override(250, 250) // Resize the image to fit within 250x250 pixels
+                    .override(250, 250)
+                    .centerCrop()
                     .into(binding.qrResultImage)
             } else {
-                Log.e("ResultFragment", "Image file not found: $imagePath")
                 binding.qrResultImageContainer.visibility = View.GONE
             }
         } else {
             binding.qrResultImageContainer.visibility = View.GONE
-            Log.e("ResultFragment", "No IMAGE_PATH provided or found")
         }
     }
 
@@ -107,7 +106,8 @@ class ResultFragment : Fragment() {
         Linkify.addLinks(binding.qrResultText, Linkify.ALL)
         binding.qrResultText.setLinkTextColor(linkColor)
 
-        val sharedPreferences = requireContext().getSharedPreferences("ScannerSettings", Context.MODE_PRIVATE)
+        val sharedPreferences =
+            requireContext().getSharedPreferences("ScannerSettings", Context.MODE_PRIVATE)
         val autoCopyToClipboard = sharedPreferences.getBoolean("AutoCopyToClipboard", false)
         val autoConnectWifi = sharedPreferences.getBoolean("AutoWifi", false)
         if (autoCopyToClipboard) {
@@ -127,6 +127,7 @@ class ResultFragment : Fragment() {
                     connectToWifi(parsedResult.ssid, parsedResult.password)
                 }
             }
+
             ParsedResultType.PRODUCT -> setupForProduct(parsedResult as ProductParsedResult)
             ParsedResultType.CALENDAR -> setupForCalendar(parsedResult as CalendarParsedResult)
             ParsedResultType.VIN -> setupForVIN(parsedResult as VINParsedResult)
@@ -212,7 +213,11 @@ class ResultFragment : Fragment() {
         if (intent.resolveActivity(requireActivity().packageManager) != null) {
             startActivity(intent)
         } else {
-            Toast.makeText(requireContext(), "No calendar app found to add event", Toast.LENGTH_SHORT).show()
+            Toast.makeText(
+                requireContext(),
+                "No calendar app found to add event",
+                Toast.LENGTH_SHORT
+            ).show()
         }
     }
 
@@ -244,10 +249,15 @@ class ResultFragment : Fragment() {
     }
 
     private fun copyToClipboard(text: String) {
-        val clipboard = requireContext().getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
+        val clipboard =
+            requireContext().getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
         val clip = ClipData.newPlainText("QR Result", text)
         clipboard.setPrimaryClip(clip)
-        Toast.makeText(requireContext(), getString(R.string.copied_to_clipboard), Toast.LENGTH_SHORT).show()
+        Toast.makeText(
+            requireContext(),
+            getString(R.string.copied_to_clipboard),
+            Toast.LENGTH_SHORT
+        ).show()
     }
 
     private fun shareResult(text: String) {
@@ -271,7 +281,7 @@ class ResultFragment : Fragment() {
         binding.btnCopy.setOnClickListener { copyToClipboard(text) }
         binding.btnShare.setOnClickListener { shareResult(text) }
         binding.typeOfQrIcon.setImageResource(R.drawable.text)
-
+        binding.customToolbarTitle.text = getString(R.string.text)
         binding.btnOpenUrl.visibility = Button.VISIBLE
         binding.btnOpenUrl.setIconResource(R.drawable.text)
         binding.btnOpenUrl.text = getString(R.string.search_for, text)
@@ -293,9 +303,10 @@ class ResultFragment : Fragment() {
         binding.btnOpenUrl.visibility = Button.VISIBLE
         binding.btnOpenUrl.text = getString(R.string.open_browser)
         binding.btnOpenUrl.setIconResource(R.drawable.browser)
-        binding.customToolbarTitle.text=getString(R.string.URL)
-        val faviconUrl = getFaviconUrl(url)
-        loadFavicon(faviconUrl)
+        binding.customToolbarTitle.text = getString(R.string.URL)
+        Glide.with(this)
+            .load(R.drawable.browser)
+            .into(binding.typeOfQrIcon)
         binding.qrResultText.apply {
             maxLines = 2
             ellipsize = TextUtils.TruncateAt.END
@@ -303,25 +314,24 @@ class ResultFragment : Fragment() {
             hyphenationFrequency = Layout.HYPHENATION_FREQUENCY_NORMAL
         }
 
-        binding.btnOpenUrl.setOnClickListener { openInBrowser(url) }
+        binding.btnOpenUrl.setOnClickListener {
+            try {
+                openInBrowser(url)
+            } catch (_: Exception) {
+                // Optionally show a user-friendly message
+                Toast.makeText(
+                    requireContext(),
+                    getString(R.string.open_browser_error),
+                    Toast.LENGTH_SHORT
+                ).show()
+            }
+
+        }
+
         binding.btnCopy.setOnClickListener { copyToClipboard(url) }
         binding.btnShare.setOnClickListener { shareResult(url) }
     }
 
-    private fun getFaviconUrl(url: String): String {
-        val uri = Uri.parse(url)
-        val baseUrl = uri.scheme + "://" + uri.host
-        return "$baseUrl/favicon.ico"
-    }
-
-    private fun loadFavicon(faviconUrl: String) {
-        Glide.with(this)
-            .load(faviconUrl)
-            .placeholder(R.drawable.web) // Default icon if favicon is not found
-            .error(R.drawable.web) // Default icon if there's an error loading the favicon
-            .diskCacheStrategy(DiskCacheStrategy.ALL)
-            .into(binding.typeOfQrIcon)
-    }
 
     private fun setupForEmail(emailResult: EmailAddressParsedResult) {
         val email = emailResult.emailAddress
@@ -362,7 +372,8 @@ class ResultFragment : Fragment() {
             if (number.isNotEmpty()) {
                 sendSms(number, body)
             } else {
-                Toast.makeText(requireContext(), "Invalid recipient number", Toast.LENGTH_SHORT).show()
+                Toast.makeText(requireContext(), "Invalid recipient number", Toast.LENGTH_SHORT)
+                    .show()
             }
         }
 
@@ -405,7 +416,7 @@ class ResultFragment : Fragment() {
         val password = wifiResult.password ?: ""
         val encryptionType = wifiResult.networkEncryption ?: ""
         binding.typeOfQrIcon.setImageResource(R.drawable.wifi)
-
+        binding.customToolbarTitle.text = getString(R.string.wifi)
         binding.qrResultText.text =
             getString(R.string.wifi_info_label, ssid, password, encryptionType)
         binding.qrResultText.setTextSize(
@@ -421,7 +432,11 @@ class ResultFragment : Fragment() {
 
         binding.btnCopy.setOnClickListener {
             if (password.isEmpty()) {
-                Toast.makeText(requireContext(), getString(R.string.no_password_to_copy), Toast.LENGTH_SHORT)
+                Toast.makeText(
+                    requireContext(),
+                    getString(R.string.no_password_to_copy),
+                    Toast.LENGTH_SHORT
+                )
                     .show()
             } else {
                 copyToClipboard(password)
@@ -448,12 +463,20 @@ class ResultFragment : Fragment() {
             val status = wifiManager.addNetworkSuggestions(listOf(suggestion))
             when (status) {
                 WifiManager.STATUS_NETWORK_SUGGESTIONS_SUCCESS -> {
-                    Toast.makeText(requireContext(), getString(R.string.wifi_suggestion_success,ssid), Toast.LENGTH_SHORT).show()
+                    Toast.makeText(
+                        requireContext(),
+                        getString(R.string.wifi_suggestion_success, ssid),
+                        Toast.LENGTH_SHORT
+                    ).show()
                     openWifiSettings()
                 }
 
                 else -> {
-                    Toast.makeText(requireContext(), getString(R.string.wifi_connection_failed), Toast.LENGTH_SHORT).show()
+                    Toast.makeText(
+                        requireContext(),
+                        getString(R.string.wifi_connection_failed),
+                        Toast.LENGTH_SHORT
+                    ).show()
                 }
             }
         } else {
@@ -467,10 +490,18 @@ class ResultFragment : Fragment() {
             if (networkId != -1) {
                 wifiManager.enableNetwork(networkId, true)
                 wifiManager.reconnect()
-                Toast.makeText(requireContext(), getString(R.string.wifi_suggestion_success,ssid), Toast.LENGTH_SHORT).show()
+                Toast.makeText(
+                    requireContext(),
+                    getString(R.string.wifi_suggestion_success, ssid),
+                    Toast.LENGTH_SHORT
+                ).show()
                 openWifiSettings()
             } else {
-                Toast.makeText(requireContext(), getString(R.string.wifi_connection_failed), Toast.LENGTH_SHORT).show()
+                Toast.makeText(
+                    requireContext(),
+                    getString(R.string.wifi_connection_failed),
+                    Toast.LENGTH_SHORT
+                ).show()
             }
         }
     }
@@ -499,7 +530,8 @@ class ResultFragment : Fragment() {
         if (intent.resolveActivity(requireActivity().packageManager) != null) {
             startActivity(intent)
         } else {
-            Toast.makeText(requireContext(), "No SMS app found to send SMS", Toast.LENGTH_SHORT).show()
+            Toast.makeText(requireContext(), "No SMS app found to send SMS", Toast.LENGTH_SHORT)
+                .show()
         }
     }
 
