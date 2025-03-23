@@ -6,7 +6,7 @@
     <color name="transparent_color">#00000000</color>
     <color name="semi_transparent">#A5212121</color>
     <color name="border_color">#2496f3</color>
-    <color name="toolbar_color">#5E7F8B</color>
+    <color name="toolbar_color">#80adbd</color>
     <color name="scanner_line_start">#FF0000</color>
 
     <color name="gray_light">#E1E8EB</color>

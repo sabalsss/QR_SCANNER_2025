@@ -73,10 +73,8 @@ class ResultFragment : Fragment() {
                 Glide.with(this)
                     .load(imageFile)
                     .placeholder(R.mipmap.ic_launcher_round)
-                    .diskCacheStrategy(DiskCacheStrategy.NONE)
+                    .diskCacheStrategy(DiskCacheStrategy.ALL)
                     .error(R.drawable.error_24px)
-                    .override(250, 250)
-                    .centerCrop()
                     .into(binding.qrResultImage)
             } else {
                 binding.qrResultImageContainer.visibility = View.GONE
@@ -102,7 +100,7 @@ class ResultFragment : Fragment() {
 
         binding.qrResultText.text = parsedResult.displayResult
         binding.customToolbarTitle.text = parsedResult.type.toString()
-        val linkColor = ContextCompat.getColor(requireContext(), R.color.black)
+        val linkColor = ContextCompat.getColor(requireContext(), R.color.white)
         Linkify.addLinks(binding.qrResultText, Linkify.ALL)
         binding.qrResultText.setLinkTextColor(linkColor)
 
@@ -355,7 +353,14 @@ class ResultFragment : Fragment() {
 
         binding.extraOpener.visibility = Button.VISIBLE
         binding.typeOfQrIcon.setImageResource(R.drawable.sms)
+
         binding.extraOpener.text = getString(R.string.call)
+        binding.btnConnect.text = getString(R.string.send_mms)
+        binding.btnConnect.setOnClickListener {
+            sendSms(number, body)
+        }
+        binding.btnConnect.visibility = Button.VISIBLE
+        binding.btnConnect.setIconResource(R.drawable.mms_icon)
         binding.extraOpener.setIconResource(R.drawable.phone)
         binding.extraOpener.setOnClickListener {
             if (number.isNotEmpty()) {
@@ -383,6 +388,7 @@ class ResultFragment : Fragment() {
 
         binding.btnShare.setOnClickListener { shareResult(smsResult.toString()) }
     }
+
 
     private fun setupForPhone(phoneResult: TelParsedResult) {
         val phone = phoneResult.number ?: ""
@@ -425,7 +431,7 @@ class ResultFragment : Fragment() {
         ) // Adjust this size as needed
         binding.btnOpenUrl.visibility = View.GONE
         binding.btnConnect.visibility = View.VISIBLE
-        binding.btnCopy.text = getString(R.string.copy_password)
+        binding.btnCopy.text = getString(R.string.Copy)
         binding.btnConnect.text = getString(R.string.connect_to_wifi)
         binding.btnConnect.setIconResource(R.drawable.wifi)
         binding.btnConnect.setOnClickListener { connectToWifi(ssid, password) }

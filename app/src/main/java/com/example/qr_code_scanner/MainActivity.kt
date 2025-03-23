@@ -72,6 +72,7 @@ class MainActivity : AppCompatActivity() {
 
         // Customize the menu icon color (optional)
         supportActionBar?.setHomeAsUpIndicator(R.drawable.ic_menu) // Customize the icon if needed
+
     }
 
     private fun checkCameraPermission() {

@@ -37,7 +37,7 @@
     <string name="wifi_info_label">Network name: %1$s\nPassword: %2$s\nEncryption: %3$s</string>
     <string name="wifi_suggestion_success">Connected to %1$s</string>
     <string name="wifi_connection_failed">Failed to connect.</string>
-    <string name="connect_to_wifi">Connect to Wi-Fi</string>
+    <string name="connect_to_wifi">Connect Wi-Fi</string>
 
     <!-- History -->
     <string name="History">History</string>
@@ -73,8 +73,8 @@
     <string name="open_browser_error">Not Openable</string>
 
     <!-- Clipboard & Copying -->
-    <string name="copied_to_clipboard">Copied to clipboard.</string>
-    <string name="copy_password">Copy password</string>
+    <string name="copied_to_clipboard">Copied to Clipboard.</string>
+
     <string name="no_password_to_copy">No password to copy.</string>
 
     <!-- File & Download -->
@@ -104,4 +104,6 @@
 
     <string name="wifi">Wi-Fi</string>
     <string name="text">Text</string>
+    <string name="send_mms">Send MMS</string>
+    <string name="open">Open</string>
 </resources>

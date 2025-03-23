@@ -334,6 +334,7 @@ class CustomScannerFragment : Fragment() {
         }
 
         parentFragmentManager.beginTransaction()
+            .setCustomAnimations(0, 0, 0, 0) // Disable animations
             .setReorderingAllowed(true)
             .replace(R.id.fragment_container, resultFragment)
             .addToBackStack(null)
@@ -471,12 +472,9 @@ class CustomScannerFragment : Fragment() {
 
     override fun onPause() {
         super.onPause()
-        binding.apply {
-            zxingBarcodeScanner.pause()
-            line1.clearAnimation()
-            line2.clearAnimation()
-        }
-        cameraSwitchJob?.cancel()
+        binding.zxingBarcodeScanner.pause()
+        binding.line1.clearAnimation()
+        binding.line2.clearAnimation()
         captureManager?.onPause()
     }
 
